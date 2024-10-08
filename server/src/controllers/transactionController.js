@@ -1,1 +1,1 @@
-// for handling node registration and communication
+// for handling transaction requests
