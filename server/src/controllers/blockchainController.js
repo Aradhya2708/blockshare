@@ -1,91 +1,11 @@
 // Logic for handling blockchain-related requests
 
-// adding users to blockshare:
-/*
-- user generate public-private key pair
-- user send request to known node for IP and Port of healthy nodes
-- user randomly request node to join 
-axios.post
-{
-    "username":"",
-    "public_key":""
-}
-@ http://<node-ip>:<node-port>/blockchain/register
-? how to make sure valid?
-
-- node approves/rejects request (manually/automatically?)
-- node responds to newUser
-- node adds newUser to utxo.json
-- node syncs with other nodes
-*/
-
 import axios from 'axios';
 
-import { loadPeerNodes, savePeerNodes, loadUTXO, saveUTXO } from '../utils/fileUtils.js';
+import { loadPeerNodes, savePeerNodes } from '../utils/fileUtils.js';
+import { verifySignature, verifyNonce, addToMempool, updateState, loadBlockchainState, isMempoolFull, mineBlock, clearMempool } from '../utils/cryptoUtils.js';
 import { pingNode } from './nodeController.js';
-
-// Function to validate new user request
-function validateUserRequest(req) {
-    const { username, public_key } = req.body;
-    if (!username || !public_key) {
-        return false;
-    }
-    // Additional validation logic (e.g., format checks) can go here
-    return true;
-}
-
-// Controller to handle user registration
-export const registerUser = async (req, res) => {
-    const isValidRequest = validateUserRequest(req);
-
-    if (!isValidRequest) {
-        return res.status(400).json({ message: 'Invalid registration request' });
-    }
-
-    const { username, public_key } = req.body;
-
-    // Load UTXO database
-    const utxoDB = loadUTXO();
-
-    // Check if user is already registered
-    const userExists = utxoDB.some((entry) => entry.public_key === public_key);
-    if (userExists) {
-        return res.status(400).json({ message: 'User already registered' });
-    }
-
-    // Add new user to UTXO database with 0 coins
-    const newUser = {
-        username,
-        public_key,
-        balance: 0,
-    };
-    utxoDB.push(newUser);
-
-    // Save the updated UTXO database
-    saveUTXO(utxoDB);
-
-    // Broadcast the updated UTXO to other nodes
-    await syncUTXOWithOtherNodes(utxoDB);
-
-    return res.status(200).json({
-        message: 'User registered successfully',
-        newUser,
-    });
-};
-
-// Function to sync UTXO database with other nodes
-async function syncUTXOWithOtherNodes(utxoDB) {
-    const peerNodes = loadPeerNodes(); // Load from peer database
-
-    // Send the updated UTXO database to all peer nodes
-    peerNodes.forEach(async (node) => {
-        try {
-            await axios.post(`http://${node.ip}:${node.port}/node/syncUTXO`, utxoDB);
-        } catch (error) {
-            console.error(`Failed to sync with node ${node.ip}:${node.port}: ${error.message}`);
-        }
-    });
-}
+import { broadcastTransaction, broadcastBlock } from '../utils/networkUtils.js';
 
 // Function to validate new node request
 function validateNewNode(req) {
@@ -139,11 +59,95 @@ export const registerNode = async (req, res) => {
 const syncPeerDataWithOtherNodes = async (peerNodes) => {
     for (const node of peerNodes) {
         try {
-            await axios.post(`http://${node.ip}:${node.port}/node/syncPeers`, {
+            await axios.post(`http://${node.ip}:${node.port}/node/sync/peers`, {
                 peerNodes
             });
         } catch (error) {
             console.error(`Failed to sync with node ${node.ip}:${node.port}: ${error.message}`);
         }
     }
+};
+
+// Submit a transaction
+export const submitTxn = async (req, res) => {
+    const { sender, recipient, amt, nonce, sign } = req.body;
+
+    if (!sender || !recipient || !amt || !nonce || !sign) {
+        return res.status(400).json({ error: 'All fields (sender, recipient, amt, nonce, sign) are required' });
+    }
+
+    // 1. Verify the signature
+    const isSignatureValid = verifySignature(sender, recipient, amt, nonce, sign);
+    if (!isSignatureValid) {
+        return res.status(400).json({ error: 'Invalid signature' });
+    }
+
+    // 2. Verify the nonce (to prevent replay attacks)
+    const isNonceValid = verifyNonce(sender, nonce);
+    if (!isNonceValid) {
+        return res.status(400).json({ error: 'Invalid nonce' });
+    }
+
+    // 3. Broadcast the transaction to peers
+    const transaction = { sender, recipient, amt, nonce, sign };
+    broadcastTransaction(transaction);
+
+    // 4. Add transaction to the mempool
+    const addedToMempool = addToMempool(transaction);
+    if (!addedToMempool) {
+        return res.status(500).json({ error: 'Failed to add transaction to mempool' });
+    }
+
+    // 5. Update the state (i.e., update the account balances)
+    const stateUpdateResult = updateState(transaction);
+    if (!stateUpdateResult.success) {
+        return res.status(500).json({ error: 'Failed to update blockchain state' });
+    }
+
+    if (isMempoolFull()) {
+        // mine
+        const minedBlock = mineBlock();
+
+        // broadcast block
+        broadcastBlock(minedBlock);
+
+        // clear mempool
+        clearMempool();
+    }
+
+    res.status(200).json({
+        message: 'Transaction submitted successfully',
+        transaction
+    });
+};
+
+// Controller to check balance by address
+export const checkBalanceByAdd = (req, res) => {
+    const { address } = req.params;
+
+    // Load the blockchain state
+    const state = loadBlockchainState();
+
+    // Check if the address exists in the state
+    const account = state[address];
+    if (!account) {
+        return res.status(404).json({ error: 'Address not found in blockchain state' });
+    }
+
+    // Return the balance of the address
+    res.status(200).json({
+        address,
+        balance: account.balance
+    });
+};
+
+// Controller to get the entire blockchain state
+export const getState = (req, res) => {
+    // Load the entire blockchain state
+    const state = loadBlockchainState();
+
+    // Return the state
+    res.status(200).json({
+        state
+    });
 };

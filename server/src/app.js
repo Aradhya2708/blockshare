@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 
 // Routes
 app.use('/blockchain', blockchainRoutes);
-app.use('/nodes', nodeRoutes);
+app.use('/node', nodeRoutes);
 app.use('/transactions', transactionRoutes);
 
 export default app;
@@ -22,14 +22,14 @@ export default app;
 example requests
 
 to register yourself as node
-    send POST request 
+    send POST request
     {
         nodeName,
         ip,
         port
     }
     over
-    http://<node_ip>:<node_port>/blockchain/contribute 
+    http://<node_ip>:<node_port>/blockchain/contribute
 
 
 to register yourself as user
@@ -44,3 +44,5 @@ to register yourself as user
 
 
 // whenever a node starts, it should sync with the current data
+
+// protect node routes

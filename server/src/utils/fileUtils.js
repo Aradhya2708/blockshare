@@ -43,38 +43,3 @@ export function mergePeerNodes(localPeers, newPeers) {
     });
     return mergedPeers;
 }
-
-// Load UTXO data from JSON file
-export function loadUTXO() {
-    ensureFileExists(UTXO_FILE); // Ensure the file exists before loading
-    try {
-        return JSON.parse(fs.readFileSync(UTXO_FILE, 'utf8'));
-    } catch (error) {
-        console.error('Error loading UTXO data:', error.message);
-        return [];
-    }
-}
-
-// Save UTXO data to JSON file
-export function saveUTXO(utxoData) {
-    ensureFileExists(UTXO_FILE); // Ensure the file exists before saving
-    try {
-        fs.writeFileSync(UTXO_FILE, JSON.stringify(utxoData, null, 2));
-    } catch (error) {
-        console.error('Error saving UTXO data:', error.message);
-    }
-}
-
-// Function to merge UTXO data (avoid duplicates)
-export function mergeUTXO(currentUTXO, incomingUTXO) {
-    const mergedUTXO = [...currentUTXO];
-
-    incomingUTXO.forEach(newEntry => {
-        const exists = mergedUTXO.some(entry => entry.public_key === newEntry.public_key);
-        if (!exists) {
-            mergedUTXO.push(newEntry);
-        }
-    });
-
-    return mergedUTXO;
-}
