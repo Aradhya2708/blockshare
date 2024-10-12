@@ -1,0 +1,12 @@
+{
+    "state": {
+        "OxAlicePublicKey": {
+            "balance": 10,
+            "nonce": 3
+        },
+        "OxBobPublicKey": {
+            "balance": 35,
+            "nonce": 5
+        }
+    }
+}

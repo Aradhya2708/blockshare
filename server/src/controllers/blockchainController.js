@@ -17,17 +17,32 @@ function validateNewNode(req) {
     return true;
 }
 
+/*
+    {
+        "ip",
+        "port",
+        "public_key"
+        "sign"
+    }
+
+    node message verification through assymetric cryptography. middleware
+*/
+
 // Function to handle new node registration
 export const registerNode = async (req, res) => {
+
     const isValidRequest = validateNewNode(req);
 
     if (!isValidRequest) {
         return res.status(400).json({ message: 'Invalid node registration request' });
     }
 
-    const newNode = req.body;
+    const { ip, port, public_key, sign } = req.body;
 
-    const { ip, port } = newNode;
+    const isValidSignature = verifySignature({ ip, port }, sign, public_key);
+    if (!isValidSignature) {
+        return res.status(403).json({ message: 'Invalid signature' });
+    }
 
     // Ping the new node to verify that it’s live (? how it will work)
     const isNodeActive = await pingNode(ip, port);
@@ -40,10 +55,12 @@ export const registerNode = async (req, res) => {
     const peerNodes = loadPeerNodes();
 
     // Check if the node already exists
-    const nodeExists = peerNodes.some(node => node.ip === ip && node.port === port);
+    const nodeExists = peerNodes.some(node => node.public_key === public_key || (node => node.ip === ip && node.port === port)); // [check]
     if (nodeExists) {
         return res.status(400).json({ message: 'Node already exists' });
     }
+
+    const newNode = { ip, port, public_key };
 
     // Add the new node to peer nodes
     peerNodes.push(newNode);
@@ -92,16 +109,10 @@ export const submitTxn = async (req, res) => {
     const transaction = { sender, recipient, amt, nonce, sign };
     broadcastTransaction(transaction);
 
-    // 4. Add transaction to the mempool
+    // 4. Add transaction to the mempool, mine if full
     const addedToMempool = addToMempool(transaction);
     if (!addedToMempool) {
         return res.status(500).json({ error: 'Failed to add transaction to mempool' });
-    }
-
-    // 5. Update the state (i.e., update the account balances)
-    const stateUpdateResult = updateState(transaction);
-    if (!stateUpdateResult.success) {
-        return res.status(500).json({ error: 'Failed to update blockchain state' });
     }
 
     if (isMempoolFull()) {
@@ -113,6 +124,12 @@ export const submitTxn = async (req, res) => {
 
         // clear mempool
         clearMempool();
+    }
+
+    // 5. Update the state (i.e., update the account balances)
+    const stateUpdateResult = updateState(transaction);
+    if (!stateUpdateResult.success) {
+        return res.status(500).json({ error: 'Failed to update blockchain state' });
     }
 
     res.status(200).json({
