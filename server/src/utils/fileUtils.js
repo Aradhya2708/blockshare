@@ -43,3 +43,11 @@ export function mergePeerNodes(localPeers, newPeers) {
     });
     return mergedPeers;
 }
+
+export function loadBlockchain() {
+    //
+}
+
+export function saveBlockchain(blockchain) {
+    // remove existing make new
+}

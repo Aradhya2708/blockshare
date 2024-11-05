@@ -1,5 +1,5 @@
 import express from 'express';
-import { recieveTxn, recieveBlock, syncBlockchain, syncPeers, pingNode } from '../controllers/nodeController.js';
+import { recieveTxn, recieveBlock, syncBlockchain, syncPeers, pingNode, requestSyncPeers, requestSyncBlockchain } from '../controllers/nodeController.js';
 import { verifyNodeRequest } from '../middlewares/nodeAuth.js';
 
 const router = express.Router();
@@ -18,5 +18,9 @@ router.post('/sync/peers', verifyNodeRequest, syncPeers);
 
 // Ping route to check if node is alive
 router.get('/ping', verifyNodeRequest, pingNode);
+
+router.get('/request-sync/peers', verifyNodeRequest, requestSyncPeers);
+
+router.get('/request-sync/blockchain', verifyNodeRequest, requestSyncBlockchain);
 
 export default router;

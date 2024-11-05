@@ -1,7 +1,8 @@
-import { loadPeerNodes, savePeerNodes, mergePeerNodes } from '../utils/fileUtils.js';
+import axios from 'axios';
+
+import { loadPeerNodes, savePeerNodes, mergePeerNodes, loadBlockchain, saveBlockchain } from '../utils/fileUtils.js';
 import { verifySignature, verifyNonce, addToMempool, isMempoolFull, mineBlock, clearMempool, executeMempool, verifyBlock, addBlockToChain } from '../utils/cryptoUtils.js';
-import { pingNode } from '../utils/networkUtils.js';
-import { broadcastTransaction, broadcastBlock } from '../utils/networkUtils.js';
+import { pingNode, broadcastBlock } from '../utils/networkUtils.js';
 
 // Function to sync peer nodes
 export const syncPeers = (req, res) => {
@@ -86,5 +87,61 @@ export const recieveBlock = async (req, res) => {
 }
 
 export const syncBlockchain = async (req, res) => {
-    //
+    // load local blockchain
+    const localBlockchain = loadBlockchain()
+
+    // fetch peer blockchain
+    const incomingBlockchain = req.body.blockchain;
+
+    // compare length
+
+    // if larger: verify peer blockchain
+    verifyBlockchain(incomingBlockchain)
+
+    // if verified: replace local with peer (save new locally)
+    saveBlockchain(incomingBlockchain);
+}
+
+export const requestSyncPeers = async (req, res) => {
+    const { port } = req.body;
+    const ip = req.ip;
+
+    try {
+        // Make a request to the peer to get their list of peer nodes
+        const peerResponse = await axios.post(`http://${ip}:${port}/sync/peers`, {
+            peerNodes: loadPeerNodes()
+        });
+
+        // Respond based on peer's response
+        if (peerResponse.status === 200) {
+            return res.status(200).json({ message: 'Requested peer nodes to sync peers successfully' });
+        } else {
+            return res.status(peerResponse.status).json({ error: peerResponse.data.error || 'Failed to request peer nodes sync' });
+        }
+    } catch (error) {
+        console.error('Error requesting sync of peers:', error.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+export const requestSyncBlockchain = async (req, res) => {
+    const { port } = req.body;
+    const ip = req.ip;
+
+    try {
+        // Request peer to send their blockchain for syncing
+        const peerResponse = await axios.post(`http://${ip}:${port}/sync/blockchain`, {
+            blockchain: loadBlockchain()
+        });
+
+        // Respond based on peer's response
+        if (peerResponse.status === 200) {
+            return res.status(200).json({ message: 'Requested peer to sync blockchain successfully' });
+        } else {
+            return res.status(peerResponse.status).json({ error: peerResponse.data.error || 'Failed to request peer blockchain sync' });
+        }
+    } catch (error) {
+        console.error('Error requesting sync of blockchain:', error.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 }
