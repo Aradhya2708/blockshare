@@ -3,7 +3,6 @@ import bodyParser from 'body-parser';
 
 import blockchainRoutes from './routes/blockchainRoutes.js';
 import nodeRoutes from './routes/nodeRoutes.js';
-import transactionRoutes from './routes/transactionRoutes.js';
 
 const app = express();
 
@@ -13,7 +12,6 @@ app.use(bodyParser.json());
 // Routes
 app.use('/blockchain', blockchainRoutes);
 app.use('/node', nodeRoutes);
-app.use('/transactions', transactionRoutes);
 
 export default app;
 

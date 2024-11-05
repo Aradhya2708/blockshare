@@ -88,35 +88,35 @@ export function clearMempool() {
     // make
 }
 
-// Update state (reflecting the transaction)
-export function updateState(transaction) {
-    const { sender, recipient, amt } = transaction;
+export function executeMempool() { 
+    //for txn in txns  [or CPP function]
+}
 
-    let state = loadBlockchainState();
+export function verifyBlock() { 
+    return // bool
+}
 
-    // Check if sender has enough balance
-    if (!state[sender] || state[sender].balance < amt) {
-        return { success: false, error: 'Insufficient balance' };
-    }
+export function executeBlock() {
 
-    // Deduct balance from sender
-    state[sender].balance -= amt;
-    state[sender].nonce += 1; // Increment nonce after the transaction
-
-    // Add balance to recipient (initialize if doesn't exist)
-    if (!state[recipient]) {
-        state[recipient] = { balance: 0, nonce: 0 };
-    }
-    state[recipient].balance += amt;
-
-    // Save updated state
-    saveBlockchainState(state);
-
-    return { success: true };
 }
 
 export const mineBlock = () => {
 
     //mine
     return newBlock;
+}
+
+export const addBlockToChain = () => {
+    // open local blockchain
+    // add block
+}
+
+export function getBalanceByAddress(address) {
+    const balance = 0; // CPP function
+    return balance;
+}
+
+export const addTwoNums = (num1, num2) => {
+    num = addTwoNumsCpp(num1, num2);
+    return num;
 }

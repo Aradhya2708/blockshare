@@ -1,22 +1,9 @@
 // Logic for handling blockchain-related requests
-
-import axios from 'axios';
-
 import { loadPeerNodes, savePeerNodes } from '../utils/fileUtils.js';
-import { verifySignature, verifyNonce, addToMempool, updateState, loadBlockchainState, isMempoolFull, mineBlock, clearMempool } from '../utils/cryptoUtils.js';
+import { verifySignature, verifyNonce, addToMempool, loadBlockchainState, isMempoolFull, mineBlock, clearMempool, getBalanceByAddress } from '../utils/cryptoUtils.js';
 import { pingNode } from './nodeController.js';
-import { broadcastTransaction, broadcastBlock } from '../utils/networkUtils.js';
-
-// Function to validate new node request
-function validateNewNode(req) {
-    const { ip, port } = req.body;
-    if (!ip || !port) {
-        return false;
-    }
-    // Additional validation logic (e.g., IP format checks, port range checks) can go here
-    return true;
-}
-
+import { broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes } from '../utils/networkUtils.js';
+import { validateNewNode, verifyNodeSignature } from '../middlewares/nodeAuth.js';
 /*
     {
         "ip",
@@ -31,21 +18,24 @@ function validateNewNode(req) {
 // Function to handle new node registration
 export const registerNode = async (req, res) => {
 
+
+    // validate node registeration request [is it coming from the said IP or not?]
     const isValidRequest = validateNewNode(req);
 
     if (!isValidRequest) {
         return res.status(400).json({ message: 'Invalid node registration request' });
     }
 
-    const { ip, port, public_key, sign } = req.body;
+    const { provided_ip, provided_port, public_key, sign } = req.body;
 
-    const isValidSignature = verifySignature({ ip, port }, sign, public_key);
+    // verify sign
+    const isValidSignature = verifyNodeSignature({ provided_ip, provided_port }, sign, public_key);
     if (!isValidSignature) {
         return res.status(403).json({ message: 'Invalid signature' });
     }
 
     // Ping the new node to verify that it’s live (? how it will work)
-    const isNodeActive = await pingNode(ip, port);
+    const isNodeActive = await pingNode(provided_ip, provided_port);
 
     if (!isNodeActive) {
         return res.status(400).json({ message: 'Node verification failed' });
@@ -55,12 +45,12 @@ export const registerNode = async (req, res) => {
     const peerNodes = loadPeerNodes();
 
     // Check if the node already exists
-    const nodeExists = peerNodes.some(node => node.public_key === public_key || (node => node.ip === ip && node.port === port)); // [check]
+    const nodeExists = peerNodes.some(node => node.public_key === public_key || (node => node.ip === provided_ip && node.port === provided_port)); // [check]
     if (nodeExists) {
         return res.status(400).json({ message: 'Node already exists' });
     }
 
-    const newNode = { ip, port, public_key };
+    const newNode = { provided_ip, provided_port, public_key };
 
     // Add the new node to peer nodes
     peerNodes.push(newNode);
@@ -70,19 +60,6 @@ export const registerNode = async (req, res) => {
     syncPeerDataWithOtherNodes(peerNodes);
 
     return res.status(200).json({ message: 'Node registered successfully' });
-};
-
-// Function to broadcast updated peer data
-const syncPeerDataWithOtherNodes = async (peerNodes) => {
-    for (const node of peerNodes) {
-        try {
-            await axios.post(`http://${node.ip}:${node.port}/node/sync/peers`, {
-                peerNodes
-            });
-        } catch (error) {
-            console.error(`Failed to sync with node ${node.ip}:${node.port}: ${error.message}`);
-        }
-    }
 };
 
 // Submit a transaction
@@ -99,7 +76,7 @@ export const submitTxn = async (req, res) => {
         return res.status(400).json({ error: 'Invalid signature' });
     }
 
-    // 2. Verify the nonce (to prevent replay attacks)
+    // 2. Verify the nonce (to prevent replay attacks) 
     const isNonceValid = verifyNonce(sender, nonce);
     if (!isNonceValid) {
         return res.status(400).json({ error: 'Invalid nonce' });
@@ -116,20 +93,20 @@ export const submitTxn = async (req, res) => {
     }
 
     if (isMempoolFull()) {
+        // execute mempool
+        executeMempool();
+
         // mine
         const minedBlock = mineBlock();
+
+        // add to local blockchain
+        addBlockToChain();
 
         // broadcast block
         broadcastBlock(minedBlock);
 
         // clear mempool
         clearMempool();
-    }
-
-    // 5. Update the state (i.e., update the account balances)
-    const stateUpdateResult = updateState(transaction);
-    if (!stateUpdateResult.success) {
-        return res.status(500).json({ error: 'Failed to update blockchain state' });
     }
 
     res.status(200).json({
@@ -154,7 +131,7 @@ export const checkBalanceByAdd = (req, res) => {
     // Return the balance of the address
     res.status(200).json({
         address,
-        balance: account.balance
+        balance: getBalanceByAddress(address)
     });
 };
 

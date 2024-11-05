@@ -21,7 +21,7 @@ export const broadcastTransaction = async (transaction) => {
     // Iterate through each peer and send the broadcast request
     for (const peer of peers) {
         const { ip, port } = peer;
-        const url = `http://${ip}:${port}/broadcast/txn`;
+        const url = `http://${ip}:${port}/recieve/txn`;
 
         // Create a promise for the request
         const promise = axios.post(url, transaction)
@@ -49,7 +49,7 @@ export const broadcastBlock = async (block) => {
     const broadcastPromises = peerNodes.map(async (node) => {
         try {
             // Send the POST request to the /broadcast/block endpoint of each node
-            await axios.post(`http://${node.ip}:${node.port}/node/broadcast/block`, block);
+            await axios.post(`http://${node.ip}:${node.port}/node/recieve/block`, block);
             console.log(`Successfully broadcasted block to node ${node.ip}:${node.port}`);
         } catch (error) {
             console.error(`Failed to broadcast block to node ${node.ip}:${node.port}: ${error.message}`);
@@ -58,4 +58,17 @@ export const broadcastBlock = async (block) => {
 
     // Wait for all broadcast operations to complete
     await Promise.all(broadcastPromises);
+};
+
+// Function to broadcast updated peer data
+export const syncPeerDataWithOtherNodes = async (peerNodes) => {
+    for (const node of peerNodes) {
+        try {
+            await axios.post(`http://${node.ip}:${node.port}/node/sync/peers`, {
+                peerNodes
+            });
+        } catch (error) {
+            console.error(`Failed to sync with node ${node.ip}:${node.port}: ${error.message}`);
+        }
+    }
 };

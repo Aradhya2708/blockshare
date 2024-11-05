@@ -1,6 +1,7 @@
 import { loadPeerNodes, savePeerNodes, mergePeerNodes } from '../utils/fileUtils.js';
-import { verifySignature, verifyNonce, addToMempool, updateState, loadBlockchainState, isMempoolFull, isMempoolFull, mineBlock, clearMempool } from '../utils/cryptoUtils.js';
+import { verifySignature, verifyNonce, addToMempool, isMempoolFull, mineBlock, clearMempool, executeMempool, verifyBlock, addBlockToChain } from '../utils/cryptoUtils.js';
 import { pingNode } from '../utils/networkUtils.js';
+import { broadcastTransaction, broadcastBlock } from '../utils/networkUtils.js';
 
 // Function to sync peer nodes
 export const syncPeers = (req, res) => {
@@ -24,33 +25,39 @@ export const pingNode = (req, res) => {
 };
 
 
-// Controller for broadcasting transactions
-export const broadcastTxn = async (req, res) => {
+// Controller for recieving broadcasted transactions 
+export const recieveTxn = async (req, res) => {
     const transaction = req.body;
 
     try {
         // 1. Verify the signature
-        const isValidSignature = verifySignature(transaction);
+        const isValidSignature = verifySignature(transaction.sender, transaction.recipient, transaction.amt, transaction.nonce, transaction.sign);
         if (!isValidSignature) {
             return res.status(400).json({ error: 'Invalid signature' });
         }
 
-        // 2. Verify the nonce
-        const state = loadBlockchainState();
-        const senderAccount = state[transaction.sender];
-        if (!senderAccount) {
-            return res.status(404).json({ error: 'Sender address not found in state' });
-        }
-        const isValidNonce = verifyNonce(transaction.nonce, senderAccount.nonce);
-        if (!isValidNonce) {
+        // 2. Verify the nonce of txn
+        const isNonceValid = verifyNonce(transaction.sender, transaction.nonce);
+        if (!isNonceValid) {
             return res.status(400).json({ error: 'Invalid nonce' });
         }
+
         // 4. Add transaction to the mempool
-        addToMempool(transaction);
+        const addedToMempool = addToMempool(transaction);
+        if (!addedToMempool) {
+            return res.status(500).json({ error: 'Failed to add transaction to mempool' });
+        }
 
         if (isMempoolFull()) {
+
+            // execute mempool
+            executeMempool();
+
             // mine
             const minedBlock = mineBlock();
+
+            // add to local blockchain
+            addBlockToChain();
 
             // broadcast block
             broadcastBlock(minedBlock);
@@ -58,21 +65,26 @@ export const broadcastTxn = async (req, res) => {
             // clear mempool
             clearMempool();
         }
-
-        // 5. Update the state (i.e., update the account balances)
-        updateState(transaction);
-
         // Respond with success
-        res.status(200).json({ message: 'Transaction broadcasted successfully', transaction });
+        res.status(200).json({ message: 'Transaction recieved successfully', transaction });
     } catch (error) {
-        console.error('Error in broadcasting transaction:', error.message);
+        console.error('Error in recieving transaction:', error.message);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
 
-export const broadcastBlock = async (req, res) => {
+export const recieveBlock = async (req, res) => {
 
-    // verify the block nonce
-    // other stuff
-    // change local state and blockchain
+    // verify the block hash and nonce
+    verifyBlock();
+
+    // add to local blockchain
+    addBlockToChain()
+
+    // execute
+    executeBlock()
+}
+
+export const syncBlockchain = async (req, res) => {
+    //
 }

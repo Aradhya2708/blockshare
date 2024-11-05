@@ -31,7 +31,7 @@ export const verifyNodeRequest = (req, res, next) => {
 };
 
 // Helper function to verify the signature
-const verifySignature = (message, signature, publicKey) => {
+export const verifyNodeSignature = (message, signature, publicKey) => {
     const verifier = crypto.createVerify('SHA256');
     verifier.update(JSON.stringify(message));
     verifier.end();
@@ -43,3 +43,15 @@ const verifySignature = (message, signature, publicKey) => {
         return false;
     }
 };
+
+export const validateNewNode = (req) => {
+    if (!req.body.provided_ip || !req.body.provided_port) {
+        return false;
+    }
+    // validation logic [IPv4, IPv6 check]
+
+    if (req.body.provided_ip != req.ip) {
+        return false;
+    }
+    return true;
+}

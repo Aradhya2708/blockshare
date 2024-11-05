@@ -1,14 +1,14 @@
 import express from 'express';
-import { broadcastTxn, broadcastBlock, syncBlockchain, syncPeers, pingNode } from '../controllers/nodeController.js';
+import { recieveTxn, recieveBlock, syncBlockchain, syncPeers, pingNode } from '../controllers/nodeController.js';
 import { verifyNodeRequest } from '../middlewares/nodeAuth.js';
 
 const router = express.Router();
 
 // Route for broadcasting transaction with peer node
-router.post('/broadcast/txn', verifyNodeRequest, broadcastTxn);
+router.post('/recieve/txn', verifyNodeRequest, recieveTxn);
 
-// Route for broadcasting block with peer node
-router.post('/broadcast/block', verifyNodeRequest, broadcastBlock);
+// Route for recieving block from peer nodes
+router.post('/recieve/block', verifyNodeRequest, recieveBlock);
 
 // Route for syncing the blockchain (after mining block)
 router.post('/sync/blockchain', verifyNodeRequest, syncBlockchain);
