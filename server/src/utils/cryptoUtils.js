@@ -88,16 +88,16 @@ export function clearMempool() {
     // make
 }
 
-export function executeMempool() { 
+export function executeMempool() {
     //for txn in txns  [or CPP function]
 }
 
-export function verifyBlock() { 
+export function verifyBlock() {
     return // bool
 }
 
 export function executeBlock() {
-
+    //for txn in txns  [or CPP function]
 }
 
 export const mineBlock = () => {
@@ -120,3 +120,10 @@ export const addTwoNums = (num1, num2) => {
     num = addTwoNumsCpp(num1, num2);
     return num;
 }
+
+
+/**
+ * blockchain ki length
+ * block
+ * 
+ */

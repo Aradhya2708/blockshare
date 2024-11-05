@@ -6,7 +6,6 @@ import { broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes } from
 import { validateNewNode, verifyNodeSignature } from '../middlewares/nodeAuth.js';
 /*
     {
-        "ip",
         "port",
         "public_key"
         "sign"
@@ -18,24 +17,16 @@ import { validateNewNode, verifyNodeSignature } from '../middlewares/nodeAuth.js
 // Function to handle new node registration
 export const registerNode = async (req, res) => {
 
-
-    // validate node registeration request [is it coming from the said IP or not?]
-    const isValidRequest = validateNewNode(req);
-
-    if (!isValidRequest) {
-        return res.status(400).json({ message: 'Invalid node registration request' });
-    }
-
-    const { provided_ip, provided_port, public_key, sign } = req.body;
-
+    const { provided_port, public_key, sign } = req.body;
+    const ip = req.ip;
     // verify sign
-    const isValidSignature = verifyNodeSignature({ provided_ip, provided_port }, sign, public_key);
+    const isValidSignature = verifyNodeSignature({ ip, provided_port }, sign, public_key);
     if (!isValidSignature) {
         return res.status(403).json({ message: 'Invalid signature' });
     }
 
     // Ping the new node to verify that it’s live (? how it will work)
-    const isNodeActive = await pingNode(provided_ip, provided_port);
+    const isNodeActive = await pingNode(ip, provided_port);
 
     if (!isNodeActive) {
         return res.status(400).json({ message: 'Node verification failed' });
@@ -45,12 +36,12 @@ export const registerNode = async (req, res) => {
     const peerNodes = loadPeerNodes();
 
     // Check if the node already exists
-    const nodeExists = peerNodes.some(node => node.public_key === public_key || (node => node.ip === provided_ip && node.port === provided_port)); // [check]
+    const nodeExists = peerNodes.some(node => node.public_key === public_key || (node => node.ip === ip && node.port === provided_port)); // [check]
     if (nodeExists) {
         return res.status(400).json({ message: 'Node already exists' });
     }
 
-    const newNode = { provided_ip, provided_port, public_key };
+    const newNode = { ip, provided_port, public_key };
 
     // Add the new node to peer nodes
     peerNodes.push(newNode);
