@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { loadPeerNodes } from '../utils/fileUtils';
+import { loadPeerNodes } from '../utils/networkUtils.js';
 
 // Middleware to verify that the request comes from a legitimate node
 export const verifyNodeRequest = (req, res, next) => {
@@ -54,4 +54,9 @@ export const validateNewNode = (req) => {
         return false;
     }
     return true;
+}
+
+export const calculateBlockchainLength = (req, res, next) => {
+    req.length = getLocalBlockchainLength();
+    next();
 }

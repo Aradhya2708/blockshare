@@ -1,114 +1,59 @@
 // for cryptographic operations (signing, hashing) [NEEDS EXTENSIVE CHANGES]
 
 import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
+import { loadMempool } from './mempoolUtils.js';
+import { getBlockNumber, getPrevBlockHash } from './blockchainUtils.js';
+import net from "net";
 
-const STATE_FILE = path.join(__dirname, '../localdb/blockchainState.json');
-const MEMPOOL_FILE = path.join(__dirname, '../localdb/mempool.json');
+function sendCommand(command) {
+    return new Promise((resolve, reject) => {
+        const client = new net.Socket();
 
-// Helper function to ensure file exists
-function ensureFileExists(filePath, initialContent = '[]') {
-    if (!fs.existsSync(filePath)) {
-        fs.writeFileSync(filePath, initialContent);
-    }
+        client.connect(8080, '172.31.107.55', () => {
+            console.log(`Connected`)
+            client.write(command);
+        });
+
+        client.on('data', (data) => {
+            resolve(data.toString());
+            client.destroy(); // close the connection after receiving data
+        });
+
+        client.on('error', (err) => {
+            reject(err);
+        });
+    });
 }
 
-// Load the current blockchain state
-export function loadBlockchainState() {
-    ensureFileExists(STATE_FILE, '{}');
-    try {
-        return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-    } catch (error) {
-        console.error('Error loading blockchain state:', error.message);
-        return {};
-    }
-}
 
 // Save the blockchain state
 export function saveBlockchainState(state) {
-    try {
-        fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
-    } catch (error) {
-        console.error('Error saving blockchain state:', error.message);
-    }
+}
+
+export function createBlockchainState() {
+    // execute each txn in the Blockchain
 }
 
 // Verify the signature of the transaction
 export function verifySignature(sender, recipient, amt, nonce, sign) {
-    // In a real blockchain, this would be public/private key cryptography verification
-    // For this example, we'll assume a simple verification function for illustration purposes
     const data = `${sender}${recipient}${amt}${nonce}`;
-    const hash = crypto.createHash('sha256').update(data).digest('hex');
+    const verifier = crypto.createVerify('SHA256');
+    verifier.update(JSON.stringify(data));
+    verifier.end();
 
-    // Simulate signature verification (you would use a real key-pair in practice)
-    return hash === sign; // Normally, you'd verify with the sender's public key
+    try {
+        return verifier.verify(sender, sign, 'base64');
+    } catch (error) {
+        console.log('Signature verification failed: ', error.message);
+        return false
+    }
+
 }
 
 // Verify nonce (ensure the transaction is in correct order)
+// CPP Function for Server
 export function verifyNonce(sender, nonce) {
-    const state = loadBlockchainState();
-    const account = state[sender];
 
-    if (!account) {
-        return false; // Sender doesn't exist
-    }
-
-    // Nonce must be 1 greater than the current nonce in the state
-    return nonce === account.nonce + 1;
-}
-
-// Add transaction to the mempool
-export function addToMempool(transaction) {
-    ensureFileExists(MEMPOOL_FILE);
-    try {
-        let mempool = JSON.parse(fs.readFileSync(MEMPOOL_FILE, 'utf8'));
-        mempool.push(transaction);
-        fs.writeFileSync(MEMPOOL_FILE, JSON.stringify(mempool, null, 2));
-        return true;
-    } catch (error) {
-        console.error('Error adding transaction to mempool:', error.message);
-        return false;
-    }
-}
-
-export function isMempoolFull() {
-    ensureFileExists(MEMPOOL_FILE);
-    try {
-        let mempool = JSON.parse(fs.readFileSync(MEMPOOL_FILE, 'utf8'));
-        return mempool.length > 8
-    }
-    catch (error) {
-        console.error('Error accessing mempool:', error.message);
-        return false;
-    }
-}
-
-export function clearMempool() {
-    // make
-}
-
-export function executeMempool() {
-    //for txn in txns  [or CPP function]
-}
-
-export function verifyBlock() {
-    return // bool
-}
-
-export function executeBlock() {
-    //for txn in txns  [or CPP function]
-}
-
-export const mineBlock = () => {
-
-    //mine
-    return newBlock;
-}
-
-export const addBlockToChain = () => {
-    // open local blockchain
-    // add block
 }
 
 export function getBalanceByAddress(address) {
@@ -116,14 +61,70 @@ export function getBalanceByAddress(address) {
     return balance;
 }
 
-export const addTwoNums = (num1, num2) => {
-    num = addTwoNumsCpp(num1, num2);
-    return num;
+// Load the current blockchain state
+export async function loadBlockchainState() {
+    const response = await sendCommand(`GET_ALL`)
+    // key:amt:nonce,key:amt:nonce
+
+}
+
+export async function getStateOfAddress(address) {
+    const response = await sendCommand(`GET_BY_ADDRESS ${address}`);
+    // "12:16" [CHECK]
+    const nonce = response.split(":")[1];
+    const balance = response.split(":")[0];
+
+    return { balance, nonce };
+}
+
+// CPP Function for Server
+export async function executeTxn(txn) {
+    const response = await sendCommand(`EXECUTE ${txn.sender} ${rxn.recipient} ${txn.nonce} ${txn.amt}`)
+    if (parseInt(response) < 0) {
+        console.log("Failure in execution");
+    }
+    else if (parseInt(response) >= 0) {
+        console.log("Transaction Executed Succesfully");
+    }
+}
+
+export async function getStateHash() {
+    const response = await sendCommand(`GET_STATE_HASH`);
+    return parseInt(response);
+}
+
+// Block utils
+
+// CPP Executable
+export function verifyBlock(block) {
+
+    // check prevHash = prev.hash
+    // check hash
+
+    return // bool
+}
+
+export const mineBlock = () => {
+
+    const mempool = loadMempool();
+    const stateHash = getStateHash();
+    const prevBlockHash = getPrevBlockHash();
+    const blockNumber = getBlockNumber() + 1;
+    const data = `${prevBlockHash}${mempool}${stateHash}${blockNumber}`
+    const { nonce, blockHash } = getNonceAndHash(JSON.stringify(data));
+    const newBlock = { prevBlockHash, mempool, stateHash, blockNumber, nonce, blockHash };
+    return newBlock;
+}
+
+// CPP function [MINING]
+async function getNonceAndHash(message) {
+    // message + 0 = 0000hash 
 }
 
 
-/**
- * blockchain ki length
- * block
- * 
- */
+
+export function executeBlock(block) {
+    block.transactions.forEach(txn => {
+        executeTxn(txn);
+    });
+}

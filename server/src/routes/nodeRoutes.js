@@ -1,6 +1,6 @@
 import express from 'express';
 import { recieveTxn, recieveBlock, syncBlockchain, syncPeers, pingNode, requestSyncPeers, requestSyncBlockchain } from '../controllers/nodeController.js';
-import { verifyNodeRequest } from '../middlewares/nodeAuth.js';
+import { verifyNodeRequest, calculateBlockchainLength } from '../middlewares/nodeAuth.js';
 
 const router = express.Router();
 
@@ -21,6 +21,6 @@ router.get('/ping', verifyNodeRequest, pingNode);
 
 router.get('/request-sync/peers', verifyNodeRequest, requestSyncPeers);
 
-router.get('/request-sync/blockchain', verifyNodeRequest, requestSyncBlockchain);
+router.get('/request-sync/blockchain', verifyNodeRequest, calculateBlockchainLength, requestSyncBlockchain);
 
 export default router;

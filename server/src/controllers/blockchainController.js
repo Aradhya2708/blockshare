@@ -1,9 +1,11 @@
 // Logic for handling blockchain-related requests
-import { loadPeerNodes, savePeerNodes } from '../utils/fileUtils.js';
-import { verifySignature, verifyNonce, addToMempool, loadBlockchainState, isMempoolFull, mineBlock, clearMempool, getBalanceByAddress } from '../utils/cryptoUtils.js';
+import { verifySignature, verifyNonce, loadBlockchainState, mineBlock, getBalanceByAddress } from '../utils/cryptoUtils.js';
 import { pingNode } from './nodeController.js';
-import { broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes } from '../utils/networkUtils.js';
-import { validateNewNode, verifyNodeSignature } from '../middlewares/nodeAuth.js';
+import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes } from '../utils/networkUtils.js';
+import { verifyNodeSignature } from '../middlewares/nodeAuth.js';
+import { addToMempool, isMempoolFull, clearMempool, executeMempool } from '../utils/mempoolUtils.js';
+import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
+
 /*
     {
         "port",
@@ -91,7 +93,7 @@ export const submitTxn = async (req, res) => {
         const minedBlock = mineBlock();
 
         // add to local blockchain
-        addBlockToChain();
+        addBlockToBlockchain(minedBlock)
 
         // broadcast block
         broadcastBlock(minedBlock);
@@ -109,15 +111,6 @@ export const submitTxn = async (req, res) => {
 // Controller to check balance by address
 export const checkBalanceByAdd = (req, res) => {
     const { address } = req.params;
-
-    // Load the blockchain state
-    const state = loadBlockchainState();
-
-    // Check if the address exists in the state
-    const account = state[address];
-    if (!account) {
-        return res.status(404).json({ error: 'Address not found in blockchain state' });
-    }
 
     // Return the balance of the address
     res.status(200).json({

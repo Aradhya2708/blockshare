@@ -1,1 +1,0 @@
-// Transaction class definition
