@@ -53,7 +53,7 @@ function createSignature(senderPublicKey, recipient, amt, nonce, privateKeyHex) 
  * @param {string} signatureHex - The digital signature to verify (hex format).
  * @returns {boolean} - Returns true if the signature is valid, false otherwise.
  */
-export function verifySignature(senderPublicKey, recipient, amt, nonce, signatureHex) {
+function verifySignature(senderPublicKey, recipient, amt, nonce, signatureHex) {
     const dataToVerify = JSON.stringify({
         sender: senderPublicKey,
         recipient: recipient,

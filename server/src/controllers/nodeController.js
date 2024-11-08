@@ -4,7 +4,9 @@ import { verifyNonce, mineBlock, verifyBlock } from '../utils/cryptoUtils.js';
 import { broadcastBlock, mergePeerNodes, savePeerNodes, loadPeerNodes } from '../utils/networkUtils.js';
 import { addToMempool, isMempoolFull, clearMempool } from '../utils/mempoolUtils.js';
 import { loadBlockchain, addBlockToBlockchain, getLocalBlockchainLength } from '../utils/blockchainUtils.js';
-import { verifySignature } from '../utils/ellipticUtils.cjs';
+import pkg from '../utils/ellipticUtils.cjs';
+const { verifySignature } = pkg
+
 
 // Function to sync peer nodes
 export const syncPeers = (req, res) => {
