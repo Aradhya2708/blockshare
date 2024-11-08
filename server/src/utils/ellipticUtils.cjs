@@ -13,7 +13,7 @@ const ec = new EC('secp256k1');
 function generateKeyPair() {
     const keyPair = ec.genKeyPair();
     const privateKey = keyPair.getPrivate('hex');
-    const publicKey = keyPair.getPublic('hex');
+    const publicKey = keyPair.getPublic(true, 'hex'); // true for compressed format
 
     return { privateKey, publicKey };
 }
@@ -21,7 +21,7 @@ function generateKeyPair() {
 /**
  * Creates a digital signature for a transaction.
  *
- * @param {string} senderPublicKey - Sender's public key (hex format).
+ * @param {string} senderPublicKey - Sender's public key (compressed hex format).
  * @param {string} recipient - Recipient's address or public key.
  * @param {number} amt - Transaction amount.
  * @param {number} nonce - Transaction nonce.
@@ -46,14 +46,14 @@ function createSignature(senderPublicKey, recipient, amt, nonce, privateKeyHex) 
 /**
  * Verifies a digital signature for a transaction.
  *
- * @param {string} senderPublicKey - Sender's public key (hex format).
+ * @param {string} senderPublicKey - Sender's public key (compressed hex format).
  * @param {string} recipient - Recipient's address or public key.
  * @param {number} amt - Transaction amount.
  * @param {number} nonce - Transaction nonce.
  * @param {string} signatureHex - The digital signature to verify (hex format).
  * @returns {boolean} - Returns true if the signature is valid, false otherwise.
  */
-function verifySignature(senderPublicKey, recipient, amt, nonce, signatureHex) {
+export function verifySignature(senderPublicKey, recipient, amt, nonce, signatureHex) {
     const dataToVerify = JSON.stringify({
         sender: senderPublicKey,
         recipient: recipient,
@@ -62,10 +62,12 @@ function verifySignature(senderPublicKey, recipient, amt, nonce, signatureHex) {
     });
 
     const hash = crypto.createHash('sha256').update(dataToVerify).digest('hex');
-    const key = ec.keyFromPublic(senderPublicKey, 'hex');
-    const signature = ec.signatureFromDER(Buffer.from(signatureHex, 'hex'));
 
-    return key.verify(hash, signature);
+    // Directly use the compressed public key in keyFromPublic
+    const key = ec.keyFromPublic(senderPublicKey, 'hex');
+
+    // Verify signature directly without using signatureFromDER
+    return key.verify(hash, Buffer.from(signatureHex, 'hex'));
 }
 
 // Export the functions for use in other modules

@@ -32,21 +32,6 @@ export async function saveBlockchainState(state) {
 }
 
 
-// Verify the signature of the transaction
-export function verifySignature(sender, recipient, amt, nonce, sign) {
-    const data = `${sender}${recipient}${amt}${nonce}`;
-    const verifier = crypto.createVerify('SHA256');
-    verifier.update(JSON.stringify(data));
-    verifier.end();
-
-    try {
-        return verifier.verify(sender, sign, 'base64');
-    } catch (error) {
-        console.log('Signature verification failed: ', error.message);
-        return false
-    }
-
-}
 
 // Verify nonce (ensure the transaction is in correct order)
 // CPP Function for Server
@@ -86,10 +71,8 @@ export async function getStateOfAddress(address) {
 
 // Block utils
 
-// CPP Executable
 export function verifyBlock(block) {
 
-    // check hash
     const data = `${block.prevBlockHash}${block.transactions}${block.blockNumber}${block.nonce}`
     const hash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
 

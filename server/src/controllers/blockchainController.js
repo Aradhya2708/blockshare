@@ -1,9 +1,9 @@
 // Logic for handling blockchain-related requests
-import { verifySignature, verifyNonce, loadBlockchainState, mineBlock, getBalanceByAddress } from '../utils/cryptoUtils.js';
+import { verifyNonce, loadBlockchainState, mineBlock, getBalanceByAddress } from '../utils/cryptoUtils.js';
 import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes, pingNodeUtil, getIPv4FromIPv6 } from '../utils/networkUtils.js';
 import { addToMempool, isMempoolFull, clearMempool } from '../utils/mempoolUtils.js';
 import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
-
+import { verifySignature } from '../utils/ellipticUtils.cjs';
 
 // 172.31.113.190
 /*
