@@ -133,9 +133,9 @@ export const requestSyncPeers = async (req, res) => {
     const ip = getIPv4FromIPv6(req.ip);
 
     try {
-        console.debug("requester = ", ip);
+        console.debug("requester = ", ip, " at = ", port);
         // Make a request to the peer to get their list of peer nodes
-        const peerResponse = await axios.post(`http://${ip}:${port}/sync/peers`, {
+        const peerResponse = await axios.post(`http://${ip}:${port}/node/sync/peers`, {
             peerNodes: loadPeerNodes()
         });
 
