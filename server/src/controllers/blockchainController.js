@@ -1,7 +1,7 @@
 // Logic for handling blockchain-related requests
 import { verifySignature, verifyNonce, loadBlockchainState, mineBlock, getBalanceByAddress } from '../utils/cryptoUtils.js';
 import { pingNode } from './nodeController.js';
-import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes, pingNodeUtil } from '../utils/networkUtils.js';
+import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes, pingNodeUtil, getIPv4FromIPv6 } from '../utils/networkUtils.js';
 import { verifyNodeSignature } from '../middlewares/nodeAuth.js';
 import { addToMempool, isMempoolFull, clearMempool, executeMempool } from '../utils/mempoolUtils.js';
 import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
@@ -28,20 +28,26 @@ export const registerNode = async (req, res) => {
     // Ping the new node to verify that it’s live (? how it will work)
     const isNodeActive = pingNodeUtil(ip, provided_port);
 
-    if (isNodeActive.status !== 400) {
-        return res.status(400).json({ message: 'Node verification failed' });
+    if (!isNodeActive) {
+        return res.status(400).json({ message: 'Node verification failed at status' });
     }
 
     // Load peer nodes using utils
     const peerNodes = loadPeerNodes();
 
+    const ipv4 = getIPv4FromIPv6(ip);
+
     // Check if the node already exists
-    const nodeExists = peerNodes.some(node => node.public_key === public_key || (node => node.ip === ip && node.port === provided_port)); // [check]
+    const nodeExists = peerNodes.some(node => node.ip === ipv4); // [check]
     if (nodeExists) {
         return res.status(400).json({ message: 'Node already exists' });
     }
 
-    const newNode = { ip, provided_port, public_key };
+    const newNode =
+    {
+        ip: ipv4,
+        port: provided_port
+    }
 
     // Add the new node to peer nodes
     peerNodes.push(newNode);

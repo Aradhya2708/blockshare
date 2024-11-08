@@ -22,7 +22,7 @@ function ensureFileExists(filePath) {
 export function loadPeerNodes() {
     ensureFileExists(PEER_FILE); // Ensure the file exists before loading
     try {
-        // console.log("loading...");
+        console.log("loading...");
         return JSON.parse(fs.readFileSync(PEER_FILE, 'utf8'));
     } catch (error) {
         console.error('Error loading peer nodes:', error.message);
