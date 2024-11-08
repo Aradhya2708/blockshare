@@ -1,7 +1,7 @@
 // Logic for handling blockchain-related requests
 import { verifyNonce, loadBlockchainState, mineBlock, getBalanceByAddress } from '../utils/cryptoUtils.js';
 import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes, pingNodeUtil, getIPv4FromIPv6 } from '../utils/networkUtils.js';
-import { addToMempool, isMempoolFull, clearMempool } from '../utils/mempoolUtils.js';
+import { addToMempool, isMempoolFull, clearMempool, showMempool } from '../utils/mempoolUtils.js';
 import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
 import pkg from '../utils/ellipticUtils.cjs';
 const { verifySignature } = pkg
@@ -88,10 +88,9 @@ export const submitTxn = async (req, res) => {
     await broadcastTransaction(transaction);
 
     // 4. Add transaction to the mempool, mine if full
-    const addedToMempool = addToMempool(transaction);
-    if (!addedToMempool) {
-        return res.status(500).json({ error: 'Failed to add transaction to mempool' });
-    }
+    addToMempool(transaction);
+    console.debug("added to mempool")
+    showMempool()
 
     if (isMempoolFull()) {
 

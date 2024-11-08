@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { verifyNonce, mineBlock, verifyBlock } from '../utils/cryptoUtils.js';
 import { broadcastBlock, mergePeerNodes, savePeerNodes, loadPeerNodes, getIPv4FromIPv6 } from '../utils/networkUtils.js';
-import { addToMempool, isMempoolFull, clearMempool } from '../utils/mempoolUtils.js';
+import { addToMempool, isMempoolFull, clearMempool, showMempool } from '../utils/mempoolUtils.js';
 import { loadBlockchain, addBlockToBlockchain, getLocalBlockchainLength } from '../utils/blockchainUtils.js';
 import pkg from '../utils/ellipticUtils.cjs';
 const { verifySignature } = pkg
@@ -85,6 +85,8 @@ export const recieveTxn = async (req, res) => {
         if (!addedToMempool) {
             return res.status(500).json({ error: 'Failed to add transaction to mempool' });
         }
+
+        showMempool()
 
         if (isMempoolFull()) {
 

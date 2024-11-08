@@ -8,6 +8,14 @@ export function loadMempool() {
 
 // Add a transaction to the in-memory mempool
 export function addToMempool(transaction) {
+
+    const exists = mempool.some(tx => tx.sign === transaction.sign);
+
+    if (exists) {
+        // If a transaction with the same signature exists, do not add it to the mempool
+        return false;
+    }
+    
     mempool.push(transaction);
     return true;
 }
@@ -23,3 +31,6 @@ export function clearMempool() {
     console.log("Mempool has been cleared in memory.");
 }
 
+export function showMempool() {
+    console.log(mempool);
+}
