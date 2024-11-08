@@ -56,7 +56,7 @@ export const registerNode = async (req, res) => {
     savePeerNodes(peerNodes);
 
     // Broadcast peer data to other nodes
-    await syncPeerDataWithOtherNodes(peerNodes);
+    syncPeerDataWithOtherNodes(peerNodes);
 
     return res.status(200).json({ message: 'Node registered successfully' });
 };

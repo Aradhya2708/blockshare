@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { verifyNonce, mineBlock, verifyBlock } from '../utils/cryptoUtils.js';
-import { broadcastBlock, mergePeerNodes, savePeerNodes, loadPeerNodes } from '../utils/networkUtils.js';
+import { broadcastBlock, mergePeerNodes, savePeerNodes, loadPeerNodes, getIPv4FromIPv6 } from '../utils/networkUtils.js';
 import { addToMempool, isMempoolFull, clearMempool } from '../utils/mempoolUtils.js';
 import { loadBlockchain, addBlockToBlockchain, getLocalBlockchainLength } from '../utils/blockchainUtils.js';
 import pkg from '../utils/ellipticUtils.cjs';
@@ -130,9 +130,10 @@ export const syncBlockchain = async (req, res) => {
 
 export const requestSyncPeers = async (req, res) => {
     const { port } = req.body;
-    const ip = req.ip;
+    const ip = getIPv4FromIPv6(req.ip);
 
     try {
+        console.debug("requester = ", ip);
         // Make a request to the peer to get their list of peer nodes
         const peerResponse = await axios.post(`http://${ip}:${port}/sync/peers`, {
             peerNodes: loadPeerNodes()
