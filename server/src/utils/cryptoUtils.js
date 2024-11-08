@@ -28,7 +28,7 @@ function sendCommand(command) {
 
 // Save the blockchain state
 export async function saveBlockchainState(state) {
-    
+
 }
 
 
@@ -37,7 +37,9 @@ export async function saveBlockchainState(state) {
 // CPP Function for Server
 export async function verifyNonce(sender, nonce) {
     const res = await getStateOfAddress(sender)
-    if (res.nonce === nonce - 1) return true;
+    if (parseInt(res.nonce) === parseInt(nonce) - 1) {
+        return true;
+    }
 
     return false;
 }

@@ -74,6 +74,7 @@ export const recieveTxn = async (req, res) => {
 
         // 2. Verify the nonce of txn
         const isNonceValid = await verifyNonce(transaction.sender, transaction.nonce);
+        console.log(isNonceValid)
         if (!isNonceValid) {
             console.error("Invalid Nonce")
             return res.status(400).json({ error: 'Invalid nonce' });
