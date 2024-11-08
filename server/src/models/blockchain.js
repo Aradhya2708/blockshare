@@ -7,7 +7,7 @@
 //         {
 //             "prevBlockHash": "0",
 //             "transactions": [
-//                 
+//
 //                 {
 //                     "sender": "address3",
 //                     "recipient": "address4",
@@ -17,7 +17,7 @@
 //                 }
 //             ],
 //             "stateHash": "hash_of_genesis_state",
-//             "blockNumber": 0,         
+//             "blockNumber": 0,
 //             "nonce": "0",
 //             "blockHash": "hash_of_genesis_block"
 //         },

@@ -19,18 +19,14 @@ import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
 // Function to handle new node registration
 export const registerNode = async (req, res) => {
 
-    const { provided_port, public_key, sign } = req.body;
+    const { provided_port } = req.body;
     const ip = req.ip;
     // verify sign
-    const isValidSignature = verifyNodeSignature({ ip, provided_port }, sign, public_key);
-    if (!isValidSignature) {
-        return res.status(403).json({ message: 'Invalid signature' });
-    }
 
     // Ping the new node to verify that it’s live (? how it will work)
     const isNodeActive = await pingNode(ip, provided_port);
 
-    if (!isNodeActive) {
+    if (isNodeActive.res.status !== 400) {
         return res.status(400).json({ message: 'Node verification failed' });
     }
 
