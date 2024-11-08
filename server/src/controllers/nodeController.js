@@ -23,6 +23,7 @@ export const syncPeers = (req, res) => {
 
 // Ping route to verify node availability
 export const pingNode = (req, res) => {
+    console.log("Node is Alive!")
     return res.status(200).json({ message: 'Node is alive' });
 };
 

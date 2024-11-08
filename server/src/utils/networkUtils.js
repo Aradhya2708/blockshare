@@ -52,10 +52,10 @@ export function mergePeerNodes(localPeers, newPeers) {
 }
 
 
-// Ping the node to check if it's alive and functional
+// Ping the node to check if it's alive and functional // error. /node instead of /blockchain 
 export const pingNodeUtil = async (ip, port) => {
     try {
-        const response = await axios.get(`http://${ip}:${port}/blockchain/ping`);
+        const response = await axios.get(`http://${ip}:${port}/node/ping`);
         return response.status === 200;
     } catch (error) {
         console.error(`Failed to ping node ${ip}:${port}: ${error.message}`);

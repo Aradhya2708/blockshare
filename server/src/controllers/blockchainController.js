@@ -1,7 +1,7 @@
 // Logic for handling blockchain-related requests
 import { verifySignature, verifyNonce, loadBlockchainState, mineBlock, getBalanceByAddress } from '../utils/cryptoUtils.js';
 import { pingNode } from './nodeController.js';
-import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes } from '../utils/networkUtils.js';
+import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes, pingNodeUtil } from '../utils/networkUtils.js';
 import { verifyNodeSignature } from '../middlewares/nodeAuth.js';
 import { addToMempool, isMempoolFull, clearMempool, executeMempool } from '../utils/mempoolUtils.js';
 import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
@@ -26,9 +26,9 @@ export const registerNode = async (req, res) => {
     // verify sign
 
     // Ping the new node to verify that it’s live (? how it will work)
-    const isNodeActive = await pingNode(ip, provided_port);
+    const isNodeActive = pingNodeUtil(ip, provided_port);
 
-    if (isNodeActive.res.status !== 400) {
+    if (isNodeActive.status !== 400) {
         return res.status(400).json({ message: 'Node verification failed' });
     }
 
