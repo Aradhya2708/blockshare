@@ -54,8 +54,13 @@ export async function getBalanceByAddress(address) {
 // Load the current blockchain state
 export async function loadBlockchainState() {
     const response = await sendCommand(`GET_ALL`)
-    // key:amt:nonce,key:amt:nonce
-
+    const state = response.split(',').map(entry => ({
+        [entry.split(':')[0]]: {
+            balance: entry.split(':')[1],
+            nonce: entry.split(':')[2]
+        }
+    }));
+    return state;
 }
 
 export async function getStateOfAddress(address) {
