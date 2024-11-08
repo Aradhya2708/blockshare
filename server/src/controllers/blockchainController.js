@@ -6,6 +6,8 @@ import { verifyNodeSignature } from '../middlewares/nodeAuth.js';
 import { addToMempool, isMempoolFull, clearMempool, executeMempool } from '../utils/mempoolUtils.js';
 import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
 
+
+// 172.31.113.190
 /*
     {
         "port",

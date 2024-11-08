@@ -3,27 +3,20 @@ import { loadPeerNodes } from '../utils/networkUtils.js';
 
 // Middleware to verify that the request comes from a legitimate node
 export const verifyNodeRequest = (req, res, next) => {
-    const { ip, port, public_key, sign } = req.body;
+    const { ip } = req.ip;
 
     // Check if all necessary fields are provided
-    if (!ip || !port || !public_key || !sign) {
+    if (!ip) {
         return res.status(400).json({ message: 'Missing required node details' });
     }
 
     // Load peer nodes to get the public key of the node making the request
     const peerNodes = loadPeerNodes();
-    const registeredNode = peerNodes.find(node => node.ip === ip && node.port === port);
+    const registeredNode = peerNodes.find(node => node.ip === ip);
 
     // Check if the node is registered
-    if (!registeredNode || registeredNode.public_key !== public_key) {
+    if (!registeredNode ) {
         return res.status(403).json({ message: 'Node is not registered or public key mismatch' });
-    }
-
-    // Verify the signature using the public key
-    const isValidSignature = verifySignature({ ip, port }, sign, public_key);
-
-    if (!isValidSignature) {
-        return res.status(403).json({ message: 'Invalid signature. Request not authenticated.' });
     }
 
     // If verification is successful, proceed to the next middleware or route handler
