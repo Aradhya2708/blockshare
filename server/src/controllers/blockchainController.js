@@ -21,6 +21,11 @@ const { verifySignature } = pkg
 export const registerNode = async (req, res) => {
 
     const { provided_port } = req.body;
+
+    if (!provided_port) {
+        return res.status(400).json({ message: 'No Port Provided' })
+    }
+
     const ip = getIPv4FromIPv6(req.ip);
 
     // Ping the new node to verify that it’s live 
