@@ -68,12 +68,14 @@ export const recieveTxn = async (req, res) => {
         // 1. Verify the signature
         const isValidSignature = verifySignature(transaction.sender, transaction.recipient, transaction.amt, transaction.nonce, transaction.sign);
         if (!isValidSignature) {
+            console.error("Invalid Sign")
             return res.status(400).json({ error: 'Invalid signature' });
         }
 
         // 2. Verify the nonce of txn
         const isNonceValid = await verifyNonce(transaction.sender, transaction.nonce);
         if (!isNonceValid) {
+            console.error("Invalid Nonce")
             return res.status(400).json({ error: 'Invalid nonce' });
         }
 

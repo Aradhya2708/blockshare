@@ -111,7 +111,7 @@ export const broadcastTransaction = async (transaction) => {
     // Iterate through each peer and send the broadcast request
     for (const peer of peers) {
         const { ip, port } = peer;
-        const url = `http://${ip}:${port}/recieve/txn`;
+        const url = `http://${ip}:${port}/node/recieve/txn`;
 
         // Create a promise for the request
         const promise = axios.post(url, transaction)

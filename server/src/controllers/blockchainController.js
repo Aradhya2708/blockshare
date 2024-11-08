@@ -87,6 +87,8 @@ export const submitTxn = async (req, res) => {
     const transaction = { sender, recipient, amt, nonce, sign };
     await broadcastTransaction(transaction);
 
+    console.debug("broadcasted")
+
     // 4. Add transaction to the mempool, mine if full
     const addedToMempool = addToMempool(transaction);
     if (!addedToMempool) {

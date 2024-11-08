@@ -1,7 +1,7 @@
 test/
 *peers.json
 
-.exe
+*.exe
 # Logs
 logs
 *.log
