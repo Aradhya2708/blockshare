@@ -74,12 +74,14 @@ export const submitTxn = async (req, res) => {
     if (!isSignatureValid) {
         return res.status(400).json({ error: 'Invalid signature' });
     }
+    console.debug("sign verified")
 
     // 2. Verify the nonce (to prevent replay attacks) 
     const isNonceValid = verifyNonce(sender, nonce);
     if (!isNonceValid) {
         return res.status(400).json({ error: 'Invalid nonce' });
     }
+    console.debug("nonce validated")
 
     // 3. Broadcast the transaction to peers
     const transaction = { sender, recipient, amt, nonce, sign };

@@ -9,7 +9,7 @@ function sendCommand(command) {
     return new Promise((resolve, reject) => {
         const client = new net.Socket();
 
-        client.connect(8080, '172.31.107.55', () => {
+        client.connect(8080, process.env.IP, () => {
             console.log(`Connected`)
             client.write(command);
         });
