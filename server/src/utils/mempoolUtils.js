@@ -1,5 +1,3 @@
-import { executeTxn } from "./cryptoUtils.js";
-
 // In-memory mempool array
 let mempool = [];
 
@@ -25,9 +23,3 @@ export function clearMempool() {
     console.log("Mempool has been cleared in memory.");
 }
 
-// Execute all transactions in the in-memory mempool
-export function executeMempool() {
-    for (const txn of mempool) {
-        executeTxn(txn);
-    }
-}

@@ -81,15 +81,7 @@ export async function getStateOfAddress(address) {
 }
 
 // // CPP Function for Server
-// export async function executeTxn(txn) {
-//     const response = await sendCommand(`EXECUTE ${txn.sender} ${rxn.recipient} ${txn.nonce} ${txn.amt}`)
-//     if (parseInt(response) < 0) {
-//         console.log("Failure in execution");
-//     }
-//     else if (parseInt(response) >= 0) {
-//         console.log("Transaction Executed Succesfully");
-//     }
-// }
+
 
 
 // Block utils
