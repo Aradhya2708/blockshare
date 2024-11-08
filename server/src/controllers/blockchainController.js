@@ -3,7 +3,8 @@ import { verifyNonce, loadBlockchainState, mineBlock, getBalanceByAddress } from
 import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes, pingNodeUtil, getIPv4FromIPv6 } from '../utils/networkUtils.js';
 import { addToMempool, isMempoolFull, clearMempool } from '../utils/mempoolUtils.js';
 import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
-import { verifySignature } from '../utils/ellipticUtils.cjs';
+import pkg from '../utils/ellipticUtils.cjs';
+const { verifySignature } = pkg
 
 // 172.31.113.190
 /*
