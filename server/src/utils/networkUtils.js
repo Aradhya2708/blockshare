@@ -42,15 +42,38 @@ export function savePeerNodes(peers) {
 
 // Merge peer node lists (avoid duplicates)
 export function mergePeerNodes(localPeers, newPeers) {
-    const mergedPeers = [...localPeers];
-    newPeers.forEach(newPeer => {
-        const exists = localPeers.some(localPeer => localPeer.ip === newPeer.ip);
-        if (!exists) {
-            mergedPeers.push(newPeer);
-        }
-    });
-    return mergedPeers;
+    try {
+        // Debug: Log the input peer lists
+        console.debug('Merging peer nodes...');
+        console.debug('Local peers:', localPeers);
+        console.debug('New peers:', newPeers);
+
+        const mergedPeers = [...localPeers];
+
+        // Iterate through the new peers and add those that are not already in the local list
+        newPeers.forEach(newPeer => {
+            const exists = localPeers.some(localPeer => localPeer.ip === newPeer.ip);
+
+            if (!exists) {
+                console.debug(`Adding new peer: ${newPeer.ip}`);
+                mergedPeers.push(newPeer);
+            } else {
+                console.debug(`Peer already exists: ${newPeer.ip}`);
+            }
+        });
+
+        // Debug: Log the final merged list
+        console.debug('Merged peers:', mergedPeers);
+
+        return mergedPeers;
+
+    } catch (error) {
+        // Error: Log any unexpected errors
+        console.error('Error merging peer nodes:', error);
+        throw new Error('Failed to merge peer nodes');
+    }
 }
+
 
 
 export const getIPv4FromIPv6 = (ip) => {

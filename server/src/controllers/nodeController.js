@@ -7,19 +7,48 @@ import { loadBlockchain, addBlockToBlockchain, getLocalBlockchainLength } from '
 
 // Function to sync peer nodes
 export const syncPeers = (req, res) => {
-    const incomingPeerNodes = req.body.peerNodes;
+    try {
+        const incomingPeerNodes = req.body.peerNodes;
 
-    // Load the local peer nodes using utils
-    const localPeerNodes = loadPeerNodes();
+        // Validate incoming peer nodes
+        if (!incomingPeerNodes || !Array.isArray(incomingPeerNodes)) {
+            return res.status(400).json({ error: 'Invalid input: peerNodes should be an array' });
+        }
 
-    // Merge the new peers with the local peers (avoiding duplicates)
-    const mergedPeerNodes = mergePeerNodes(localPeerNodes, incomingPeerNodes);
+        // Load the local peer nodes using utils
+        let localPeerNodes;
+        try {
+            localPeerNodes = loadPeerNodes();
+        } catch (error) {
+            console.error('Error loading local peer nodes:', error);
+            return res.status(500).json({ error: 'Failed to load local peer nodes' });
+        }
 
-    // Save the merged peer nodes list using utils
-    savePeerNodes(mergedPeerNodes);
+        // Merge the new peers with the local peers (avoiding duplicates)
+        let mergedPeerNodes;
+        try {
+            mergedPeerNodes = mergePeerNodes(localPeerNodes, incomingPeerNodes);
+        } catch (error) {
+            console.error('Error merging peer nodes:', error);
+            return res.status(500).json({ error: 'Failed to merge peer nodes' });
+        }
 
-    return res.status(200).json({ message: 'Peers synced successfully' });
+        // Save the merged peer nodes list using utils
+        try {
+            savePeerNodes(mergedPeerNodes);
+        } catch (error) {
+            console.error('Error saving peer nodes:', error);
+            return res.status(500).json({ error: 'Failed to save peer nodes' });
+        }
+
+        return res.status(200).json({ message: 'Peers synced successfully' });
+
+    } catch (error) {
+        console.error('Unexpected error in syncPeers:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 };
+
 
 // Ping route to verify node availability
 export const pingNode = (req, res) => {
