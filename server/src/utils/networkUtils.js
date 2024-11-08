@@ -9,7 +9,7 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const PEER_FILE = path.join(__dirname, '../localdb/peernodes.json');
+const PEER_FILE = path.join(__dirname, '../localdb/peers.json');
 
 // Helper function to ensure file exists
 function ensureFileExists(filePath) {
@@ -22,6 +22,7 @@ function ensureFileExists(filePath) {
 export function loadPeerNodes() {
     ensureFileExists(PEER_FILE); // Ensure the file exists before loading
     try {
+        // console.log("loading...");
         return JSON.parse(fs.readFileSync(PEER_FILE, 'utf8'));
     } catch (error) {
         console.error('Error loading peer nodes:', error.message);
@@ -52,13 +53,29 @@ export function mergePeerNodes(localPeers, newPeers) {
 }
 
 
+export const getIPv4FromIPv6 = (ip) => {
+    // Check if the IP is IPv6-mapped IPv4 (like "::ffff:192.168.1.1")
+    const ipv4MappedRegex = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/;
+
+    const match = ip.match(ipv4MappedRegex);
+    if (match) {
+        // Return the IPv4 part if it matches
+        // console.log(match[1])
+        return match[1];
+    }
+    return ip; // Return the original IP if it's not IPv4-mapped
+};
+
+
 // Ping the node to check if it's alive and functional // error. /node instead of /blockchain 
 export const pingNodeUtil = async (ip, port) => {
     try {
-        const response = await axios.get(`http://${ip}:${port}/node/ping`);
+        const ipv4 = getIPv4FromIPv6(ip);
+        const response = await axios.get(`http://${ipv4}:${port}/node/ping`);
         return response.status === 200;
     } catch (error) {
-        console.error(`Failed to ping node ${ip}:${port}: ${error.message}`);
+        const ipv4 = getIPv4FromIPv6(ip);
+        console.error(`Failed to ping node ${ipv4}:${port}: ${error.message}`);
         return false;
     }
 };

@@ -1,24 +1,33 @@
 import crypto from 'crypto';
-import { loadPeerNodes } from '../utils/networkUtils.js';
+import { getIPv4FromIPv6, loadPeerNodes } from '../utils/networkUtils.js';
 
 // Middleware to verify that the request comes from a legitimate node
 export const verifyNodeRequest = (req, res, next) => {
-    const { ip } = req.ip;
+    const ip = req.ip;
 
-    // Check if all necessary fields are provided
-    if (!ip) {
+    const ipv4 = getIPv4FromIPv6(ip)
+
+    // Check if IP is valid
+    if (!ipv4) {
         return res.status(400).json({ message: 'Missing required node details' });
     }
 
-    // Load peer nodes to get the public key of the node making the request
-    const peerNodes = loadPeerNodes();
-    const registeredNode = peerNodes.find(node => node.ip === ip);
+    console.log(ipv4);
 
-    // Check if the node is registered
-    if (!registeredNode ) {
-        return res.status(403).json({ message: 'Node is not registered or public key mismatch' });
+    // Load peer nodes
+    const peerNodes = loadPeerNodes();
+    if (!peerNodes || peerNodes.length === 0) {
+        // console.log("peerNodes not found")
+        return res.status(500).json({ message: 'Could not load peer nodes' });
     }
 
+    console.log(peerNodes)
+
+    // Check if the node is registered
+    const registeredNode = peerNodes.find(node => node.ip === ipv4);
+    if (!registeredNode) {
+        return res.status(403).json({ message: 'Node is not registered or public key mismatch' });
+    }
     // If verification is successful, proceed to the next middleware or route handler
     next();
 };
