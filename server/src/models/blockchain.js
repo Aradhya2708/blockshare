@@ -16,9 +16,8 @@
 //                     "sign": "signature_data2"
 //                 }
 //             ],
-//             "stateHash": "hash_of_genesis_state",
 //             "blockNumber": 0,
-//             "nonce": "0",
+//             "nonce": "0", 
 //             "blockHash": "hash_of_genesis_block"
 //         },
 //         {
@@ -32,7 +31,6 @@
 //                     "sign": "signature_data3"
 //                 }
 //             ],
-//             "stateHash": "hash_of_second_block_state",
 //             "blockNumber": 1,
 //             "nonce": "12345",
 //             "blockHash": "hash_of_second_block"
@@ -48,7 +46,6 @@
 //                     "sign": "signature_data4"
 //                 }
 //             ],
-//             "stateHash": "hash_of_third_block_state",
 //             "blockNumber": 2,
 //             "nonce": "67890",
 //             "blockHash": "hash_of_third_block"

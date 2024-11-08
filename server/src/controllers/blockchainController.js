@@ -1,9 +1,7 @@
 // Logic for handling blockchain-related requests
 import { verifySignature, verifyNonce, loadBlockchainState, mineBlock, getBalanceByAddress } from '../utils/cryptoUtils.js';
-import { pingNode } from './nodeController.js';
 import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes, pingNodeUtil, getIPv4FromIPv6 } from '../utils/networkUtils.js';
-import { verifyNodeSignature } from '../middlewares/nodeAuth.js';
-import { addToMempool, isMempoolFull, clearMempool, executeMempool } from '../utils/mempoolUtils.js';
+import { addToMempool, isMempoolFull, clearMempool } from '../utils/mempoolUtils.js';
 import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
 
 
@@ -22,10 +20,9 @@ import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
 export const registerNode = async (req, res) => {
 
     const { provided_port } = req.body;
-    const ip = req.ip;
-    // verify sign
+    const ip = getIPv4FromIPv6(req.ip);
 
-    // Ping the new node to verify that it’s live (? how it will work)
+    // Ping the new node to verify that it’s live 
     const isNodeActive = pingNodeUtil(ip, provided_port);
 
     if (!isNodeActive) {
@@ -35,17 +32,16 @@ export const registerNode = async (req, res) => {
     // Load peer nodes using utils
     const peerNodes = loadPeerNodes();
 
-    const ipv4 = getIPv4FromIPv6(ip);
 
     // Check if the node already exists
-    const nodeExists = peerNodes.some(node => node.ip === ipv4); // [check]
+    const nodeExists = peerNodes.some(node => node.ip === ip); // [check]
     if (nodeExists) {
         return res.status(400).json({ message: 'Node already exists' });
     }
 
     const newNode =
     {
-        ip: ipv4,
+        ip: ip,
         port: provided_port
     }
 
@@ -54,7 +50,7 @@ export const registerNode = async (req, res) => {
     savePeerNodes(peerNodes);
 
     // Broadcast peer data to other nodes
-    syncPeerDataWithOtherNodes(peerNodes);
+    await syncPeerDataWithOtherNodes(peerNodes);
 
     return res.status(200).json({ message: 'Node registered successfully' });
 };
@@ -81,7 +77,7 @@ export const submitTxn = async (req, res) => {
 
     // 3. Broadcast the transaction to peers
     const transaction = { sender, recipient, amt, nonce, sign };
-    broadcastTransaction(transaction);
+    await broadcastTransaction(transaction);
 
     // 4. Add transaction to the mempool, mine if full
     const addedToMempool = addToMempool(transaction);
@@ -90,17 +86,15 @@ export const submitTxn = async (req, res) => {
     }
 
     if (isMempoolFull()) {
-        // execute mempool
-        executeMempool();
 
         // mine
-        const minedBlock = mineBlock();
+        const minedBlock = await mineBlock();
 
         // add to local blockchain
-        addBlockToBlockchain(minedBlock)
+        await addBlockToBlockchain(minedBlock)
 
         // broadcast block
-        broadcastBlock(minedBlock);
+        await broadcastBlock(minedBlock);
 
         // clear mempool
         clearMempool();
@@ -113,20 +107,21 @@ export const submitTxn = async (req, res) => {
 };
 
 // Controller to check balance by address
-export const checkBalanceByAdd = (req, res) => {
+export const checkBalanceByAdd = async (req, res) => {
     const { address } = req.params;
+    const balance = await getBalanceByAddress(address)
 
     // Return the balance of the address
     res.status(200).json({
         address,
-        balance: getBalanceByAddress(address)
+        balance
     });
 };
 
 // Controller to get the entire blockchain state
-export const getState = (req, res) => {
+export const getState = async (req, res) => {
     // Load the entire blockchain state
-    const state = loadBlockchainState();
+    const state = await loadBlockchainState();
 
     // Return the state
     res.status(200).json({

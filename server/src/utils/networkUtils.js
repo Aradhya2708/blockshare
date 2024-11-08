@@ -44,7 +44,7 @@ export function savePeerNodes(peers) {
 export function mergePeerNodes(localPeers, newPeers) {
     const mergedPeers = [...localPeers];
     newPeers.forEach(newPeer => {
-        const exists = localPeers.some(localPeer => localPeer.ip === newPeer.ip && localPeer.port === newPeer.port);
+        const exists = localPeers.some(localPeer => localPeer.ip === newPeer.ip);
         if (!exists) {
             mergedPeers.push(newPeer);
         }

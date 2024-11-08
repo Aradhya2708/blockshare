@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-import { verifySignature, verifyNonce, mineBlock, verifyBlock, executeBlock } from '../utils/cryptoUtils.js';
+import { verifySignature, verifyNonce, mineBlock, verifyBlock } from '../utils/cryptoUtils.js';
 import { broadcastBlock, mergePeerNodes, savePeerNodes, loadPeerNodes } from '../utils/networkUtils.js';
-import { addToMempool, isMempoolFull, clearMempool, executeMempool } from '../utils/mempoolUtils.js';
-import { saveBlockchain, loadBlockchain, verifyBlockchain, addBlockToBlockchain, getLocalBlockchainLength } from '../utils/blockchainUtils.js';
+import { addToMempool, isMempoolFull, clearMempool } from '../utils/mempoolUtils.js';
+import { loadBlockchain, addBlockToBlockchain, getLocalBlockchainLength } from '../utils/blockchainUtils.js';
 
 // Function to sync peer nodes
 export const syncPeers = (req, res) => {
@@ -40,7 +40,7 @@ export const recieveTxn = async (req, res) => {
         }
 
         // 2. Verify the nonce of txn
-        const isNonceValid = verifyNonce(transaction.sender, transaction.nonce);
+        const isNonceValid = await verifyNonce(transaction.sender, transaction.nonce);
         if (!isNonceValid) {
             return res.status(400).json({ error: 'Invalid nonce' });
         }
@@ -53,17 +53,14 @@ export const recieveTxn = async (req, res) => {
 
         if (isMempoolFull()) {
 
-            // execute mempool
-            executeMempool();
-
             // mine
-            const minedBlock = mineBlock();
+            const minedBlock = await mineBlock();
 
             // add to local blockchain
-            addBlockToBlockchain();
+            await addBlockToBlockchain();
 
             // broadcast block
-            broadcastBlock(minedBlock);
+            await broadcastBlock(minedBlock);
 
             // clear mempool
             clearMempool();
@@ -85,18 +82,18 @@ export const recieveBlock = async (req, res) => {
     };
 
     // add to local blockchain
-    addBlockToBlockchain(incomingBlock)
+    await addBlockToBlockchain(incomingBlock)
 
-    // execute
-    executeBlock(incomingBlock)
 }
 
 export const syncBlockchain = async (req, res) => {
-    const incomingBlockchain = req.body.blockchain
-    verifyBlockchain(incomingBlockchain);
+    // 1. get blocks[] from blockchain
 
-    // if verified
-    saveBlockchain(incomingBlockchain);
+    // 2. build blockchain step by step
+    // for(int i=0; i<blockchain.length; i++){
+    //     verifyBlock(blockchain[i]);
+    //     addBlockToBlockchain(blockchain[i]);
+    // }
 }
 
 export const requestSyncPeers = async (req, res) => {
@@ -127,15 +124,17 @@ export const requestSyncBlockchain = async (req, res) => {
     const ip = req.ip;
 
     try {
-        const peerBlockchainLength = getLocalBlockchainLength();
+        const peerBlockchainLength = await getLocalBlockchainLength();
 
         if (peerBlockchainLength <= req.length) {// req.length stores length of blockchain of requester
             return res.status().json({ error: 'Requester already has a longer blockchain' })
         }
 
+        const blockchain = await loadBlockchain()
+
         // Request peer to send their blockchain for syncing
         const peerResponse = await axios.post(`http://${ip}:${port}/sync/blockchain`, {
-            blockchain: loadBlockchain()
+            blockchain
         });
 
         // Respond based on peer's response

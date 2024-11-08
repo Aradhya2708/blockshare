@@ -27,12 +27,10 @@ function sendCommand(command) {
 
 
 // Save the blockchain state
-export function saveBlockchainState(state) {
+export async function saveBlockchainState(state) {
+    
 }
 
-export function createBlockchainState() {
-    // execute each txn in the Blockchain
-}
 
 // Verify the signature of the transaction
 export function verifySignature(sender, recipient, amt, nonce, sign) {
@@ -52,14 +50,19 @@ export function verifySignature(sender, recipient, amt, nonce, sign) {
 
 // Verify nonce (ensure the transaction is in correct order)
 // CPP Function for Server
-export function verifyNonce(sender, nonce) {
+export async function verifyNonce(sender, nonce) {
+    const res = await getStateOfAddress(sender)
+    if (res.nonce === nonce - 1) return true;
 
+    return false;
 }
 
-export function getBalanceByAddress(address) {
+export async function getBalanceByAddress(address) {
     const balance = 0; // CPP function
     return balance;
 }
+
+// !------- COMMANDS FOR INTERACTING WITH BLOCKCHAINSTATE.EXE -------!
 
 // Load the current blockchain state
 export async function loadBlockchainState() {
@@ -77,54 +80,42 @@ export async function getStateOfAddress(address) {
     return { balance, nonce };
 }
 
-// CPP Function for Server
-export async function executeTxn(txn) {
-    const response = await sendCommand(`EXECUTE ${txn.sender} ${rxn.recipient} ${txn.nonce} ${txn.amt}`)
-    if (parseInt(response) < 0) {
-        console.log("Failure in execution");
-    }
-    else if (parseInt(response) >= 0) {
-        console.log("Transaction Executed Succesfully");
-    }
-}
+// // CPP Function for Server
+// export async function executeTxn(txn) {
+//     const response = await sendCommand(`EXECUTE ${txn.sender} ${rxn.recipient} ${txn.nonce} ${txn.amt}`)
+//     if (parseInt(response) < 0) {
+//         console.log("Failure in execution");
+//     }
+//     else if (parseInt(response) >= 0) {
+//         console.log("Transaction Executed Succesfully");
+//     }
+// }
 
-export async function getStateHash() {
-    const response = await sendCommand(`GET_STATE_HASH`);
-    return parseInt(response);
-}
 
 // Block utils
 
 // CPP Executable
 export function verifyBlock(block) {
 
-    // check prevHash = prev.hash
     // check hash
+    const data = `${block.prevBlockHash}${block.transactions}${block.blockNumber}${block.nonce}`
+    const hash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
 
-    return // bool
+    return hash === block.blockHash;
 }
 
-export const mineBlock = () => {
+export const mineBlock = async () => {
 
     const mempool = loadMempool();
-    const stateHash = getStateHash();
-    const prevBlockHash = getPrevBlockHash();
-    const blockNumber = getBlockNumber() + 1;
-    const data = `${prevBlockHash}${mempool}${stateHash}${blockNumber}`
-    const { nonce, blockHash } = getNonceAndHash(JSON.stringify(data));
-    const newBlock = { prevBlockHash, mempool, stateHash, blockNumber, nonce, blockHash };
+    const prevBlockHash = await getPrevBlockHash();
+    const blockNumber = await getBlockNumber() + 1;
+    const data = `${prevBlockHash}${mempool}${blockNumber}`
+    const { nonce, blockHash } = await getNonceAndHash(JSON.stringify(data));
+    const newBlock = { prevBlockHash, mempool, blockNumber, nonce, blockHash };
     return newBlock;
 }
 
 // CPP function [MINING]
 async function getNonceAndHash(message) {
     // message + 0 = 0000hash 
-}
-
-
-
-export function executeBlock(block) {
-    block.transactions.forEach(txn => {
-        executeTxn(txn);
-    });
 }
