@@ -649,7 +649,7 @@ string processCommand(const string& command, MerklePatriciaTree& mpt) {
 int main() {
 
     MerklePatriciaTree mpt;
-    mpt.insert("abcd", 0, 0); //ADMIN ACCOUNT
+    mpt.insert("02a0a8ebb0c0eee0d31626cab16f7b5c82e6a93bc58767708310bfe8649f002a7a", 0, 0); //ADMIN ACCOUNT
 
     // auto start = high_resolution_clock::now();
     // for(int i = 1; i< 1000001; i++){

@@ -1,5 +1,7 @@
 test/
-src/localdb/
+*peers.json
+
+.exe
 # Logs
 logs
 *.log
