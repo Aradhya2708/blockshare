@@ -22,7 +22,7 @@ export function addToMempool(transaction) {
 
 // Check if the in-memory mempool is full (8 transactions)
 export function isMempoolFull() {
-    return mempool.length >= 8;
+    return mempool.length >= 1;
 }
 
 // Clear the in-memory mempool

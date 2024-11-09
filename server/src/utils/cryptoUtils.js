@@ -74,7 +74,7 @@ export async function loadBlockchainState() {
     return state;
 }
 
-export async function getStateOfAddress(address1) {
+export async function getStateOfAddress(address) {
     const response = await sendCommand(`GET_BY_ADDRESS ${address}`);
     // "12:16" [CHECK]
     const nonce = response.split(":")[1];
@@ -98,10 +98,29 @@ export function verifyBlock(block) {
 }
 
 export const mineBlock = async () => {
-
+    console.log("mining...")
     const txns = loadMempool();
+
+    // let message = "nonce1";
+    // message += ",[";
+    // for (let txn in txns) {
+    //     message += txn.sender;
+    //     message += ":";
+    //     message += txn.recipient;
+    //     message += ":";
+    //     message += txn.nonce;
+    //     message += ":";
+    //     message += txn.amt;
+    //     message += ":";
+    //     message += txn.sign;
+    //     message += ",";
+    // }
+    // message += "]";
+
     const prevBlockHash = await getPrevBlockHash();
+    console.log(prevBlockHash)
     const blockNumber = await getBlockNumber() + 1;
+    console.log(blockNumber)
     const data = `${prevBlockHash}${txns}${blockNumber}`
     const { nonce, blockHash } = getNonceAndHash(JSON.stringify(data));
     const newBlock = { prevBlockHash, txns, blockNumber, nonce, blockHash };
@@ -109,26 +128,39 @@ export const mineBlock = async () => {
 }
 
 function runSha256(baseString, k) {
-    // Run the C++ executable with the base string and number of leading zeros
-    exec(`"${exePath}" "${baseString}" ${k}`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error: ${error.message}`);
-            return null;
-        }
-        if (stderr) {
-            console.error(`stderr: ${stderr}`);
-            return null;
-        }
-        // Parse and log the JSON output from the C++ program
-        const output = JSON.parse(stdout.trim());
-
-        return output
+    return new Promise((resolve, reject) => {
+        // Run the C++ executable with the base string and number of leading zeros
+        exec(`"${exePath}" "${baseString}" ${k}`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                return reject(error);
+            }
+            if (stderr) {
+                console.error(`stderr: ${stderr}`);
+                return reject(new Error(stderr));
+            }
+            try {
+                // Parse and log the JSON output from the C++ program
+                const output = JSON.parse(stdout.trim());
+                resolve(output);
+            } catch (parseError) {
+                reject(parseError);
+            }
+        });
     });
 }
 
+//console.log(runSha256("Arpan",5).then(console.log))
+
 // CPP function [MINING]
-function getNonceAndHash(message) {
-    const { result, hash } = runSha256(message, 5);
-    const nonce = result.parseInt();
-    return { nonce, hash };
+async function getNonceAndHash(message) {
+    try {
+        const { result, hash } = await runSha256(JSON.parse(message), 3);
+        console.log(result);
+        const nonce = parseInt(result);
+        return { nonce, hash };
+    } catch (error) {
+        console.error("Error in getNonceAndHash:", error);
+        return null;
+    }
 }

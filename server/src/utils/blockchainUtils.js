@@ -1,3 +1,24 @@
+import net from "net";
+
+function sendCommand(command) {
+    return new Promise((resolve, reject) => {
+        const client = new net.Socket();
+
+        client.connect(8080, process.env.IP, () => {
+            console.log(`Connected`)
+            client.write(command);
+        });
+
+        client.on('data', (data) => {
+            resolve(data.toString());
+            client.destroy(); // close the connection after receiving data
+        });
+
+        client.on('error', (err) => {
+            reject(err);
+        });
+    });
+}
 // !------- COMMANDS FOR INTERACTING WITH BLOCKCHAIN.EXE -------!
 function messageParser(message) {
     try {
@@ -12,7 +33,7 @@ function messageParser(message) {
         // Extract the array portion - everything between [ and ]
         let arrayMatch = message.match(/\[(.*?)\]/); // Made non-greedy with ?
         if (!arrayMatch) throw new Error('Invalid array format');
-        
+
         // Split the array string into individual entries and filter empty ones
         let entries = arrayMatch[1]
             .split(',')
@@ -26,7 +47,7 @@ function messageParser(message) {
                 console.log('Invalid entry:', entry); // Debug log
                 throw new Error('Invalid entry format');
             }
-            
+
             return {
                 sender: parts[0],
                 recipient: parts[1],
@@ -52,10 +73,10 @@ function parseBlock(blockStr) {
         }
 
         const [_, prevBlockHash, nonceStr, transactionsStr, blockNumber, blockHash] = match;
-        
+
         // Reconstruct the message format that messageParser expects
         const message = `${nonceStr},[${transactionsStr}]`;
-        
+
         const parsed = messageParser(message);
         if (!parsed) {
             throw new Error('Failed to parse message');
@@ -78,7 +99,7 @@ function stringToBlockchain(input) {
     try {
         // Split the input into individual blocks
         const blockStrings = input.split(/(?<=Hash\d),/);
-        
+
         // Parse each block
         const blocks = blockStrings
             .map(blockStr => parseBlock(blockStr.trim()))
@@ -116,11 +137,11 @@ export const addBlockToBlockchain = async (newBlock) => {
     const prevBlockHash = newBlock.prevBlockHash;
     const blockNumber = newBlock.blockNumber;
     const hash = newBlock.blockHash;
-
+    
     // Message is of type string input = "nonce1,[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:5:120:sign1]"
-    const message = toString(newBlock.nonce);
-    message+= ",[";
-    for (txn in newBlock.txns) {
+    let message = toString(newBlock.nonce);
+    message += ",[";
+    for (let txn in newBlock.txns) {
         message += txn.sender;
         message += ":";
         message += txn.recipient;
