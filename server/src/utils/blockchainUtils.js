@@ -134,6 +134,8 @@ export async function loadBlockchain() {
 
 export const addBlockToBlockchain = async (newBlock) => {
 
+    console.log("nbabtt ", newBlock);
+
     const prevBlockHash = newBlock.prevBlockHash;
     const blockNumber = newBlock.blockNumber;
     const hash = newBlock.blockHash;

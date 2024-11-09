@@ -118,12 +118,16 @@ export const mineBlock = async () => {
     // message += "]";
 
     const prevBlockHash = await getPrevBlockHash();
-    console.log(prevBlockHash)
+    // console.log(prevBlockHash)
     const blockNumber = await getBlockNumber() + 1;
-    console.log(blockNumber)
-    const data = `${prevBlockHash}${txns}${blockNumber}`
-    const { nonce, blockHash } = getNonceAndHash(JSON.stringify(data));
-    const newBlock = { prevBlockHash, txns, blockNumber, nonce, blockHash };
+    // console.log(blockNumber)
+    const data = `${prevBlockHash}${JSON.stringify(txns)}${blockNumber}`
+    // console.log(JSON.stringify(txns));
+    const { nonce, hash } = await getNonceAndHash((data));
+    console.log("mined!");
+    console.log("bh = ", hash);
+    const newBlock = { prevBlockHash, txns, blockNumber, nonce, hash };
+    console.log("nbph, ", newBlock.prevBlockHash)
     return newBlock;
 }
 
@@ -155,8 +159,10 @@ function runSha256(baseString, k) {
 // CPP function [MINING]
 async function getNonceAndHash(message) {
     try {
-        const { result, hash } = await runSha256(JSON.parse(message), 3);
-        console.log(result);
+        console.log('Printing message', message);
+        const { result, hash } = await runSha256(message, 3);
+        console.log("result and hash == ")
+        console.log(result, hash);
         const nonce = parseInt(result);
         return { nonce, hash };
     } catch (error) {

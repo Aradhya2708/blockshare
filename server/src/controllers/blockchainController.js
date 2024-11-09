@@ -98,10 +98,10 @@ export const submitTxn = async (req, res) => {
         const minedBlock = await mineBlock();
 
         // add to local blockchain
-        await addBlockToBlockchain(minedBlock)
+        addBlockToBlockchain(minedBlock)
 
         // broadcast block
-        await broadcastBlock(minedBlock);
+        broadcastBlock(minedBlock);
 
         // clear mempool
         clearMempool();

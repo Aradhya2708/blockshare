@@ -79,7 +79,7 @@ public:
             cout << "Genesis Block added: " << newBlock->hash << endl;
             isGenesisAdded = true;
             return;
-        }
+        } 
         
         int level = newBlock->blockNumber;
         cout << "lvl of block = " << level << endl;
