@@ -121,27 +121,11 @@ export async function saveBlockchain(blockchain) {
 }
 
 export const addBlockToBlockchain = async (newBlock) => {
-    // open local blockchain
 
-    // const blockchain = loadBlockchain();
-
-    // if (blockchain) {
-    //     // add block
-    //     blockchain.blocks.push(newBlock);
-
-    //     // save
-    //     saveBlockchain(blockchain);
-    //     console.log('New block added to the blockchain successfully.');
-    // } else {
-    //     console.error('Failed to load blockchain to add new block.');
-    // }
-
-    // to blockchain.exe
-    const prevBlockHash = getPrevBlockHash();
-    const message = "";
+    const prevBlockHash = newBlock.prevBlockHash;
+    const message = `${newBlock.nonce}${newBlock.txns}`
     const blockNumber = getBlockNumber();
-    const hash = "";
-
+    const hash = newBlock.blockHash;
 
     const response = await sendCommand(`ADD_BLOCK ${prevBlockHash} ${message} ${blockNumber} ${hash}`);
     if (response === "1") console.log("Block Added Successfully");

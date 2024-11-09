@@ -99,12 +99,12 @@ export function verifyBlock(block) {
 
 export const mineBlock = async () => {
 
-    const mempool = loadMempool();
+    const txns = loadMempool();
     const prevBlockHash = await getPrevBlockHash();
     const blockNumber = await getBlockNumber() + 1;
-    const data = `${prevBlockHash}${mempool}${blockNumber}`
+    const data = `${prevBlockHash}${txns}${blockNumber}`
     const { nonce, blockHash } = getNonceAndHash(JSON.stringify(data));
-    const newBlock = { prevBlockHash, mempool, blockNumber, nonce, blockHash };
+    const newBlock = { prevBlockHash, txns, blockNumber, nonce, blockHash };
     return newBlock;
 }
 
