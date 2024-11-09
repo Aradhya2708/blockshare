@@ -170,6 +170,7 @@ public:
         // If all checks passed, confirm the block and add it to the confirmed blockchain
         // Aslo Execute its transactions
         confirmedBlockchain.push_back(block);      
+        cout << "executing : " << block->message << endl;
         executeWholeBlockTransactions(block->message);
         confirmedLength++;
         return true;
@@ -177,7 +178,10 @@ public:
 
     shared_ptr<Block> getLastBlock(){
         shared_ptr<Block> tempBlock = Genesis;
-        while(tempBlock->children[0] != nullptr){
+        cout << "genesis = " << tempBlock->hash << endl;
+
+        // Traverse until the last block
+        while (!tempBlock->children.empty() && tempBlock->children[0] != nullptr) {
             tempBlock = tempBlock->children[0];
         }
 
@@ -947,6 +951,7 @@ void executeWholeBlockTransactions(string input) {
         string sign = match[5];
 
         // Call the function fxn with the extracted values
+        cout << "handlin txn = " << senderPublicKey<<recieverPublicKey<<senderNonce<<amount;
         blockchainState.handleTransaction(senderPublicKey, recieverPublicKey, senderNonce, amount);
     }
 }
@@ -977,22 +982,12 @@ string processCommand(const string& command, MerklePatriciaTree& blockchainState
         return data;
     }
 
-    else if (command.rfind("ADD_BLOCK", 0) == 0) {
-        istringstream iss(command);
-        string temp;
+    else if (command.rfind("ADD_BLOCK", 0) == 0){
+        string prevHash = "";
+        string message = "";
+        int blockNumber = 0;
+        string blockHash = "";
 
-        // Skip the "ADD_BLOCK" part
-        iss >> temp;
-
-        // Read the four parameters
-        string prevHash;
-        string message;
-        int blockNumber;
-        string blockHash;
-
-        iss >> prevHash >> message >> blockNumber >> blockHash;
-
-        // Create the block with the parsed parameters
         auto newBlock = make_shared<Block>(prevHash, message, blockNumber, blockHash);
         blockchain.addBlock(newBlock);
 
@@ -1018,107 +1013,109 @@ string processCommand(const string& command, MerklePatriciaTree& blockchainState
 }
 
 
-//Testing
-int main() {
-    blockchainState.insert("abcd", 0, 0);       //MAIN ACCOUNT WITH 0 COINS
-
-
-    // FOR SPEED ANALYSIS
-
-    // auto start = high_resolution_clock::now();
-    // for(int i = 1; i< 1000000; i++){
-    //     blockchainState.handleTransaction("abcd", "efgh", i, 10);
-    // }
-    // auto stop = high_resolution_clock::now();
-    // auto duration = duration_cast<microseconds>(stop - start);
-    // cout << "Time taken by function: "
-    // << duration.count()/1000 << " microseconds" << endl;
-
-    
-
-
-    // FOR CONNECTION TO JS
-    // CPP SERVER
-
-    WSADATA wsaData;
-    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (result != 0) {
-        cerr << "WSAStartup failed: " << result << "\n";
-        return 1;
-    }
-
-    SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (serverSocket == INVALID_SOCKET) {
-        cerr << "Socket creation failed\n";
-        WSACleanup();
-        return 1;
-    }
-
-    sockaddr_in serverAddr;
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(8080);
-
-    if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        cerr << "Bind failed\n";
-        closesocket(serverSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    if (listen(serverSocket, 3) == SOCKET_ERROR) {
-        cerr << "Listen failed\n";
-        closesocket(serverSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    cout << "Server is listening on port 8080...\n";
-
-    while (true) {
-        SOCKET clientSocket = accept(serverSocket, nullptr, nullptr);
-        if (clientSocket == INVALID_SOCKET) {
-            cerr << "Accept failed\n";
-            closesocket(serverSocket);
-            WSACleanup();
-            return 1;
-        }
-
-        char buffer[1024] = {0};
-        int bytesRead = recv(clientSocket, buffer, 1024, 0);
-        if (bytesRead > 0) {
-            string response = processCommand(string(buffer, bytesRead), blockchainState, blockchain);
-            send(clientSocket, response.c_str(), response.size(), 0);
-        }
-        
-        closesocket(clientSocket); // Close client connection after handling request
-    }
-
-    closesocket(serverSocket);
-    WSACleanup();
-    return 0;
-}
-
-
-
-
-
-
-
+// //Testing
 // int main() {
+//     blockchainState.insert("abcd", 0, 0);       //MAIN ACCOUNT WITH 0 COINS
+
+
+//     // FOR SPEED ANALYSIS
+
+//     // auto start = high_resolution_clock::now();
+//     // for(int i = 1; i< 1000000; i++){
+//     //     blockchainState.handleTransaction("abcd", "efgh", i, 10);
+//     // }
+//     // auto stop = high_resolution_clock::now();
+//     // auto duration = duration_cast<microseconds>(stop - start);
+//     // cout << "Time taken by function: "
+//     // << duration.count()/1000 << " microseconds" << endl;
+
     
 
-//     while (true) {
-//         string prevHash, message, hash;
-//         int blockNumber;
 
-//         cout << "\nEnter block details (prevHash message blockNumber hash): ";
-//         cin >> prevHash >> message >> blockNumber >> hash;
+//     // FOR CONNECTION TO JS
+//     // CPP SERVER
 
-//         auto newBlock = make_shared<Block>(prevHash, message, blockNumber, hash);
-//         blockchain.addBlock(newBlock);
-//         blockchain.printBlockchain();
+//     WSADATA wsaData;
+//     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+//     if (result != 0) {
+//         cerr << "WSAStartup failed: " << result << "\n";
+//         return 1;
 //     }
 
+//     SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+//     if (serverSocket == INVALID_SOCKET) {
+//         cerr << "Socket creation failed\n";
+//         WSACleanup();
+//         return 1;
+//     }
+
+//     sockaddr_in serverAddr;
+//     serverAddr.sin_family = AF_INET;
+//     serverAddr.sin_addr.s_addr = INADDR_ANY;
+//     serverAddr.sin_port = htons(8080);
+
+//     if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+//         cerr << "Bind failed\n";
+//         closesocket(serverSocket);
+//         WSACleanup();
+//         return 1;
+//     }
+
+//     if (listen(serverSocket, 3) == SOCKET_ERROR) {
+//         cerr << "Listen failed\n";
+//         closesocket(serverSocket);
+//         WSACleanup();
+//         return 1;
+//     }
+
+//     cout << "Server is listening on port 8080...\n";
+
+//     while (true) {
+//         SOCKET clientSocket = accept(serverSocket, nullptr, nullptr);
+//         if (clientSocket == INVALID_SOCKET) {
+//             cerr << "Accept failed\n";
+//             closesocket(serverSocket);
+//             WSACleanup();
+//             return 1;
+//         }
+
+//         char buffer[1024] = {0};
+//         int bytesRead = recv(clientSocket, buffer, 1024, 0);
+//         if (bytesRead > 0) {
+//             string response = processCommand(string(buffer, bytesRead), blockchainState, blockchain);
+//             send(clientSocket, response.c_str(), response.size(), 0);
+//         }
+        
+//         closesocket(clientSocket); // Close client connection after handling request
+//     }
+
+//     closesocket(serverSocket);
+//     WSACleanup();
 //     return 0;
 // }
+
+
+
+
+
+int main() {
+    
+
+    while (true) {
+        string prevHash, message, hash;
+        int blockNumber;
+
+        cout << "\nEnter block details (prevHash message blockNumber hash): ";
+        cin >> prevHash >> message >> blockNumber >> hash;
+
+        auto newBlock = make_shared<Block>(prevHash, message, blockNumber, hash);
+        blockchain.addBlock(newBlock);
+        blockchain.printBlockchain();
+        cout << blockchain.giveBlockchainString() << endl;
+        cout << blockchain.getLastHash() << endl;
+        cout << blockchain.getLastLength() << endl;
+        cout << blockchain.confirmedLength;
+    }
+
+    return 0;
+}
