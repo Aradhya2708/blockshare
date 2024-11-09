@@ -53,7 +53,6 @@ public:
     unordered_map<int, vector<shared_ptr<Block>>> levels; // Blocks stored by level
     vector<shared_ptr<Block>> confirmedBlockchain;
 
-    int length;
     int confirmedLength;
     string lastHash;
     bool isGenesisAdded = false;
@@ -64,7 +63,6 @@ public:
         // Create and add the genesis block when the blockchain is initialized
        
         confirmedLength = 0;
-        
 
         auto genesisBlock = make_shared<Block>("0", "a", 1, "1");
         addBlock(genesisBlock);
@@ -173,7 +171,7 @@ public:
         // Aslo Execute its transactions
         confirmedBlockchain.push_back(block);      
         executeWholeBlockTransactions(block->message);
-
+        confirmedLength++;
         return true;
     }
 
@@ -186,12 +184,24 @@ public:
         return tempBlock;
     }
 
+    string getLastHash(){
+        shared_ptr<Block> block = getLastBlock();
+        return block->hash;
+    }
+
+    string getLastLength() {
+        shared_ptr<Block> block = getLastBlock();
+        int len = block->blockNumber;
+        return to_string(len);
+    } 
+
+
     void resolveFork(shared_ptr<Block> block) {
         if (block->children.size() <= 1) {
             cout << "No fork detected. Block " << block->hash << " has " << block->children.size() << " children.\n";
             if(block->parent != nullptr)
-                if(isConfirmed(block->parent))
-                     return; // found confirmed blockchain
+                // if(isConfirmed(block->parent))
+                //      return; // found confirmed blockchain
                 resolveFork(block->parent);
             return;  // No fork, nothing to resolve
         }
@@ -228,8 +238,8 @@ public:
             }
         }
 
-        if(isConfirmed(block->parent))
-            return; // found confirmed blockchain
+        // if(isConfirmed(block->parent))
+        //     return; // found confirmed blockchain
 
         resolveFork(block->parent);
     }
@@ -978,7 +988,17 @@ string processCommand(const string& command, MerklePatriciaTree& blockchainState
     }
 
     else if (command.rfind("GET_LAST_HASH", 0) == 0){
-        // string res = blockchain.getLastHash();
+        string res = blockchain.getLastHash();
+        return res;
+    }
+
+    else if (command.rfind("GET_LAST_LENGTH", 0) == 0){
+        string len = blockchain.getLastLength();
+        return len;
+    }
+    
+    else if (command.rfind("GET_CONFIRMED_LENGTH", 0) == 0){
+        return to_string(blockchain.confirmedLength);
     }
 
 
