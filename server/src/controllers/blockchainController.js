@@ -4,7 +4,7 @@ import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syn
 import { addToMempool, isMempoolFull, clearMempool, showMempool } from '../utils/mempoolUtils.js';
 import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
 import pkg from '../utils/ellipticUtils.cjs';
-const { verifySignature } = pkg
+const { verifySignature, generateKeyPair } = pkg
 
 // 172.31.113.190
 /*
@@ -135,3 +135,12 @@ export const getState = async (req, res) => {
         state
     });
 };
+
+export const generateKeyPairRoute = async (req, res) => {
+    const { publicKey, privateKey } = generateKeyPair();
+
+    res.status(400).json({
+        publicKey,
+        privateKey
+    })
+}

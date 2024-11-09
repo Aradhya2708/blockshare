@@ -1,5 +1,6 @@
 import express from 'express';
 import { registerNode, submitTxn, checkBalanceByAdd, getState } from '../controllers/blockchainController.js';
+import { generateKeyPair } from 'crypto';
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.get('/balance/:address', checkBalanceByAdd);
 
 // Route for getting Blockchain state
 router.get('/balance', getState);
+
 
 // routes for utility in frontend [client only]:
 /**

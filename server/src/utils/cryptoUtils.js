@@ -6,6 +6,16 @@ import { getBlockNumber, getPrevBlockHash } from './blockchainUtils.js';
 import net from "net";
 import { exec } from 'child_process';
 
+import path from 'path';
+
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const exePath = path.resolve(__dirname, '../../../native/hashNonce.exe');
+
 function sendCommand(command) {
     return new Promise((resolve, reject) => {
         const client = new net.Socket();
@@ -100,7 +110,7 @@ export const mineBlock = async () => {
 
 function runSha256(baseString, k) {
     // Run the C++ executable with the base string and number of leading zeros
-    exec(`C:/Projectrs/DSA_PROJECT/blockshare/native/hashNonce.exe "${baseString}" ${k}`, (error, stdout, stderr) => {
+    exec(`"${exePath}" "${baseString}" ${k}`, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error: ${error.message}`);
             return;
@@ -115,7 +125,7 @@ function runSha256(baseString, k) {
         console.log("Hash:", output.hash);
     });
 }
-getNonceAndHash("arpan")
+
 // CPP function [MINING]
 async function getNonceAndHash(message) {
     runSha256(message,5);
