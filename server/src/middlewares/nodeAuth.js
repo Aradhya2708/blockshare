@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { getIPv4FromIPv6, loadPeerNodes } from '../utils/networkUtils.js';
+import { getLocalBlockchainLength } from '../utils/blockchainUtils.js';
 
 // Middleware to verify that the request comes from a legitimate node
 export const verifyNodeRequest = (req, res, next) => {

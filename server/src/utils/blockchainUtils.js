@@ -96,10 +96,11 @@ function parseBlock(blockStr) {
 }
 
 function stringToBlockchain(input) {
+    console.log('Printing String to block input = ', input);
     try {
         // Split the input into individual blocks
         const blockStrings = input.split(/(?<=Hash\d),/);
-
+        console.log('Printing String to block string = ', blockStrings);
         // Parse each block
         const blocks = blockStrings
             .map(blockStr => parseBlock(blockStr.trim()))
@@ -122,8 +123,8 @@ function stringToBlockchain(input) {
 }
 
 // SHOULD FOLLOW THIS FORMAT
-// const message = "prevBlockHash1:'nonce1',[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:6:170:sign3]:1:Hash1,prevBlockHash1:'nonce1',[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:6:170:sign3]:1:Hash1";
-// const result = stringToBlockchain(message);
+// const message = "blockStringsHash1,prevBlockHash1:'nonce1',[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:6:170:sign3]:1:Hash1";
+//0:0,[0:0:0:0:0,]:1:1// const result = stringToBlockchain(message);
 
 export async function loadBlockchain() {
     const response = await sendCommand(`GET_BLOCKCHAIN`);

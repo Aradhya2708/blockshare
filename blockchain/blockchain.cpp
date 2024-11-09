@@ -64,7 +64,7 @@ public:
        
         confirmedLength = 0;
 
-        auto genesisBlock = make_shared<Block>("0", "a", 1, "1");
+        auto genesisBlock = make_shared<Block>("0", "0,[0:0:0:0:0,]", 1, "1"); // 1:0,[0:0:0:0:0,]:0:0
         addBlock(genesisBlock);
         Genesis = genesisBlock;
         confirmedBlockchain.push_back(genesisBlock);
@@ -914,6 +914,7 @@ public:
 
 
         // Transaction Successful
+        cout << "Executed Transaction Successfly";
         return 1;
 
     }
@@ -951,7 +952,8 @@ void executeWholeBlockTransactions(string input) {
         string sign = match[5];
 
         // Call the function fxn with the extracted values
-        cout << "handlin txn = " << senderPublicKey<<recieverPublicKey<<senderNonce<<amount;
+        // cout << "handlin txn = " << senderPublicKey<<recieverPublicKey<<senderNonce<<amount;
+        // cout << "Sending execution request";
         blockchainState.handleTransaction(senderPublicKey, recieverPublicKey, senderNonce, amount);
     }
 }
@@ -983,7 +985,6 @@ string processCommand(const string& command, MerklePatriciaTree& blockchainState
     }
 
     else if (command.rfind("ADD_BLOCK", 0) == 0) {
-        cout << "ADDING BLOCK .... ";
         istringstream iss(command);
         string commandType;
         string prevHash;
