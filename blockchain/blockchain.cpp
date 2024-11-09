@@ -919,18 +919,20 @@ Blockchain blockchain;
 MerklePatriciaTree blockchainState;
 void executeWholeBlockTransactions(string input) {
     // PARSE THE STRING
-
+    // INPUT IS OF TYPE string input = "nonce1,[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:5:120:sign1,]";
     // GET THE NONCE
-    regex pattern("\"([^\"]+)\":\"([^\"]+)\":([0-9]+):([0-9]+):\"([^\"]+)\"");
+    size_t nonceStart = input.find(",") + 1;  // Find the first comma to get the nonce part
+    size_t nonceEnd = input.find("[", nonceStart); // Find the opening bracket to get the end of nonce1
+    string nonce = input.substr(0, nonceEnd-1);
 
-    // Search for the "nonce" part
-    size_t nonceStart = input.find("\"") + 1;  // Find the first quote to get the nonce part
-    size_t nonceEnd = input.find("\"", nonceStart);
-    string nonce = input.substr(nonceStart, nonceEnd - nonceStart);
+    // Remove the "nonce1," part and the brackets to work with the list of data
+    string data = input.substr(nonceEnd + 1, input.size() - nonceEnd - 2); // Remove trailing ']'
 
+    // Regular expression pattern to match the required components
+    regex pattern("([a-zA-Z0-9]+):([a-zA-Z0-9]+):(\\d+):(\\d+):([a-zA-Z0-9]+)");
 
-    // Use regular expression to find matches in the input string for the data patterns
-    auto words_begin = sregex_iterator(input.begin(), input.end(), pattern);
+    // Use regular expression to find matches in the data part
+    auto words_begin = sregex_iterator(data.begin(), data.end(), pattern);
     auto words_end = sregex_iterator();
 
     // Loop through all matches
@@ -975,12 +977,22 @@ string processCommand(const string& command, MerklePatriciaTree& blockchainState
         return data;
     }
 
-    else if (command.rfind("ADD_BLOCK", 0) == 0){
-        string prevHash = "";
-        string message = "";
-        int blockNumber = 0;
-        string blockHash = "";
+    else if (command.rfind("ADD_BLOCK", 0) == 0) {
+        istringstream iss(command);
+        string temp;
 
+        // Skip the "ADD_BLOCK" part
+        iss >> temp;
+
+        // Read the four parameters
+        string prevHash;
+        string message;
+        int blockNumber;
+        string blockHash;
+
+        iss >> prevHash >> message >> blockNumber >> blockHash;
+
+        // Create the block with the parsed parameters
         auto newBlock = make_shared<Block>(prevHash, message, blockNumber, blockHash);
         blockchain.addBlock(newBlock);
 

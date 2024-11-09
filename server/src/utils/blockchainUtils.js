@@ -123,9 +123,25 @@ export async function saveBlockchain(blockchain) {
 export const addBlockToBlockchain = async (newBlock) => {
 
     const prevBlockHash = newBlock.prevBlockHash;
-    const message = `${newBlock.nonce}${newBlock.txns}`
-    const blockNumber = getBlockNumber();
+    const blockNumber = newBlock.blockNumber;
     const hash = newBlock.blockHash;
+
+    // Message is of type string input = "nonce1,[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:5:120:sign1]"
+    const message = toString(newBlock.nonce);
+    message+= ",[";
+    for (txn in newBlock.txns) {
+        message += txn.sender;
+        message += ":";
+        message += txn.recipient;
+        message += ":";
+        message += txn.nonce;
+        message += ":";
+        message += txn.amt;
+        message += ":";
+        message += txn.sign;
+        message += ",";
+    }
+    message += "]";
 
     const response = await sendCommand(`ADD_BLOCK ${prevBlockHash} ${message} ${blockNumber} ${hash}`);
     if (response === "1") console.log("Block Added Successfully");
