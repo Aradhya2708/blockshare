@@ -139,29 +139,29 @@ export async function loadBlockchain() {
 
 export const addBlockToBlockchain = async (newBlock) => {
 
-    // const newBlock = { prevBlockHash, txns, blockNumber, nonce, hash }
-    const { prevBlockHash, txns, blockNumber, nonce, hash } = newBlock
+    // const newBlock = { prevBlockHash, transactions, blockNumber, nonce, blockHash }
+    const { prevBlockHash, transactions, blockNumber, nonce, blockHash } = newBlock
     // Message is of type string input = "nonce1,[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:5:120:sign1]"
     let message = "";
     message += nonce;
     message += ",[";
-    for (let i = 0; i < txns.length; i++) {
-        console.log("txn == ", txns[i]);
-        message += txns[i].sender;
+    for (let i = 0; i < transactions.length; i++) {
+        console.log("txn == ", transactions[i]);
+        message += transactions[i].sender;
         message += ":";
-        message += txns[i].recipient;
+        message += transactions[i].recipient;
         message += ":";
-        message += txns[i].nonce;
+        message += transactions[i].nonce;
         message += ":";
-        message += txns[i].amt;
+        message += transactions[i].amt;
         message += ":";
-        message += txns[i].sign;
+        message += transactions[i].sign;
         message += ",";
     }
     message += "]";
 
 
-    const response = await sendCommand(`ADD_BLOCK ${prevBlockHash} ${message} ${blockNumber} ${hash}`);
+    const response = await sendCommand(`ADD_BLOCK ${prevBlockHash} ${message} ${blockNumber} ${blockHash}`);
     if (response === "1") console.log("Block Added Successfully");
 
     return newBlock;

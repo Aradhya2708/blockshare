@@ -36,14 +36,6 @@ function sendCommand(command) {
     });
 }
 
-
-// Save the blockchain state
-export async function saveBlockchainState(state) {
-
-}
-
-
-
 // Verify nonce (ensure the transaction is in correct order)
 // CPP Function for Server
 export async function verifyNonce(sender, nonce) {
@@ -91,41 +83,25 @@ export async function getStateOfAddress(address) {
 
 export function verifyBlock(block) {
     console.log(block);
-    const { prevBlockHash, txns, blockNumber, nonce, hash } = block;
-    const data = `${prevBlockHash}${JSON.stringify(txns)}${blockNumber}${nonce}`
+    const { prevBlockHash, transactions, blockNumber, nonce, blockHash } = block;
+    const data = `${prevBlockHash}${JSON.stringify(transactions)}${blockNumber}${nonce}`
     const calcHash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
 
-    return calcHash === hash;
+    return calcHash === blockHash;
 }
 
 export const mineBlock = async () => {
-    const txns = loadMempool();
-
-    // let message = "nonce1";
-    // message += ",[";
-    // for (let txn in txns) {
-    //     message += txn.sender;
-    //     message += ":";
-    //     message += txn.recipient;
-    //     message += ":";
-    //     message += txn.nonce;
-    //     message += ":";
-    //     message += txn.amt;
-    //     message += ":";
-    //     message += txn.sign;
-    //     message += ",";
-    // }
-    // message += "]";
+    const transactions = loadMempool();
 
     const prevBlockHash = await getPrevBlockHash();
     // console.log(prevBlockHash)
     const blockNumber = await getBlockNumber() + 1;
     // console.log(blockNumber)
-    const data = `${prevBlockHash}${JSON.stringify(txns)}${blockNumber}`
-    // console.log(JSON.stringify(txns));
-    const { nonce, hash } = await getNonceAndHash((data));
+    const data = `${prevBlockHash}${JSON.stringify(transactions)}${blockNumber}`
+    // console.log(JSON.stringify(transactions));
+    const { nonce, blockHash } = await getNonceAndHash((data));
     console.log("mined!");
-    const newBlock = { prevBlockHash, txns, blockNumber, nonce, hash };
+    const newBlock = { prevBlockHash, transactions, blockNumber, nonce, blockHash };
     return newBlock;
 }
 
@@ -160,7 +136,8 @@ async function getNonceAndHash(message) {
         const { result, hash } = await runSha256(message, 3);
         console.log(result, hash);
         const nonce = parseInt(result);
-        return { nonce, hash };
+        const blockHash = hash
+        return { nonce, blockHash };
     } catch (error) {
         console.error("Error in getNonceAndHash:", error);
         return null;
