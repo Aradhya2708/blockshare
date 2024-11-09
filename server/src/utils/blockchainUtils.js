@@ -19,22 +19,21 @@ function sendCommand(command) {
         });
     });
 }
-// !------- COMMANDS FOR INTERACTING WITH BLOCKCHAIN.EXE -------!
+
 function messageParser(message) {
     try {
-        // Fix for extracting nonce from the format 'nonce1'
-        let nonceMatch = message.match(/'([^']+)'/);
+        // Extract nonce - handle both quoted and unquoted formats
+        let nonceMatch = message.match(/^(?:'([^']+)'|(\d+))/);
         if (!nonceMatch) {
-            console.log('Message being parsed:', message); // Debug log
             throw new Error('Invalid nonce format');
         }
-        let nonce = nonceMatch[1];
+        let nonce = nonceMatch[1] || nonceMatch[2]; // Use the captured group that matched
 
         // Extract the array portion - everything between [ and ]
-        let arrayMatch = message.match(/\[(.*?)\]/); // Made non-greedy with ?
+        let arrayMatch = message.match(/\[(.*)\]/s); // Added 's' flag to match across lines
         if (!arrayMatch) throw new Error('Invalid array format');
 
-        // Split the array string into individual entries and filter empty ones
+        // Split the array string into individual entries and remove trailing comma if exists
         let entries = arrayMatch[1]
             .split(',')
             .map(entry => entry.trim())
@@ -44,8 +43,7 @@ function messageParser(message) {
         let result = entries.map(entry => {
             let parts = entry.split(':');
             if (parts.length !== 5) {
-                console.log('Invalid entry:', entry); // Debug log
-                throw new Error('Invalid entry format');
+                throw new Error(`Invalid entry format: ${entry}`);
             }
 
             return {
@@ -66,16 +64,19 @@ function messageParser(message) {
 
 function parseBlock(blockStr) {
     try {
-        // Parse a single block
-        const match = blockStr.match(/^([^:]+):('.*?')\,\[(.*?)\]:(\d+):([^:]+)$/);
+        // Improved regex to handle the entire block format
+        const match = blockStr.match(/^([^:]+):(?:'([^']+)'|(\d+)),\[(.*)\]:(\d+):([^:]+)$/s);
         if (!match) {
             throw new Error('Invalid block format');
         }
 
-        const [_, prevBlockHash, nonceStr, transactionsStr, blockNumber, blockHash] = match;
+        const [_, prevBlockHash, quotedNonce, numericNonce, transactionsStr, blockNumber, blockHash] = match;
+
+        // Use either the quoted or numeric nonce
+        const nonce = quotedNonce || numericNonce;
 
         // Reconstruct the message format that messageParser expects
-        const message = `${nonceStr},[${transactionsStr}]`;
+        const message = `${quotedNonce ? `'${nonce}'` : nonce},[${transactionsStr}]`;
 
         const parsed = messageParser(message);
         if (!parsed) {
@@ -96,14 +97,17 @@ function parseBlock(blockStr) {
 }
 
 function stringToBlockchain(input) {
-    console.log('Printing String to block input = ', input);
     try {
-        // Split the input into individual blocks
-        const blockStrings = input.split(/(?<=Hash\d),/);
-        console.log('Printing String to block string = ', blockStrings);
+        // Use a more precise regex to split blocks
+        // Look for pattern: ,(?=.+?:.+?,\[) which ensures we only split at block boundaries
+        const blockStrings = input
+            .split(/,(?=[^,\]]+:[^,\]]+,\[)/)
+            .map(str => str.trim())
+            .filter(str => str.length > 0);
+
         // Parse each block
         const blocks = blockStrings
-            .map(blockStr => parseBlock(blockStr.trim()))
+            .map(blockStr => parseBlock(blockStr))
             .filter(block => block !== null);
 
         if (blocks.length === 0) {
@@ -123,7 +127,7 @@ function stringToBlockchain(input) {
 }
 
 // SHOULD FOLLOW THIS FORMAT
-// const message = "blockStringsHash1,prevBlockHash1:'nonce1',[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:6:170:sign3]:1:Hash1";
+// const message = "blockStringsHash1:prevBlockHash1:'nonce1',[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:6:170:sign3]:1:Hash1";
 //0:0,[0:0:0:0:0,]:1:1// const result = stringToBlockchain(message);
 
 export async function loadBlockchain() {

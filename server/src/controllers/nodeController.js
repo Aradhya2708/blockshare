@@ -140,6 +140,30 @@ export const receiveBlock = async (req, res) => {
     }
 };
 export const syncBlockchain = async (req, res) => {
+    const { blockchain } = req.body;
+
+    const blocks = blockchain.blocks;
+
+    for (let i = 0; i < blockchain.blockchainHeader.blockchainLength; i++) {
+        const isBlockValid = verifyBlock(blocks[i]);
+        if (!isBlockValid) {
+            return res.status(400).json({ error: `Block not verified` });
+        }
+        console.log("Block verified successfully");
+        addBlockToBlockchain(blocks[i]);
+
+
+        try {
+            await addBlockToBlockchain(blocks[i]);
+            console.log("Block added to local blockchain successfully");
+
+            res.status(200).json({ message: 'Block received and added successfully' });
+        } catch (error) {
+            console.error("Error adding block to blockchain:", error);
+            res.status(500).json({ error: "Error adding block to blockchain" });
+        }
+    }
+
     // 1. get blocks[] from blockchain
 
     // 2. build blockchain step by step
@@ -175,7 +199,7 @@ export const requestSyncPeers = async (req, res) => {
 // check here only if my length is longer or not
 export const requestSyncBlockchain = async (req, res) => {
     const { port } = req.body;
-    const ip = req.ip;
+    const ip = getIPv4FromIPv6(req.ip);
 
     try {
         const peerBlockchainLength = await getLocalBlockchainLength();
@@ -186,8 +210,12 @@ export const requestSyncBlockchain = async (req, res) => {
 
         const blockchain = await loadBlockchain()
 
+        console.log("sending... ", blockchain);
+
         // Request peer to send their blockchain for syncing
-        const peerResponse = await axios.post(`http://${ip}:${port}/sync/blockchain`, {
+        const url = `http://${ip}:${port}/node/sync/blockchain`;
+        console.log("url", url);
+        const peerResponse = await axios.post(`http://${ip}:${port}/node/sync/blockchain`, {
             blockchain
         });
 

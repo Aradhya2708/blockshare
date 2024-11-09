@@ -597,6 +597,7 @@ public:
 
 
         // Transaction Successful
+        visualizeTree();
         return 1;
 
     }
