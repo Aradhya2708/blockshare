@@ -109,6 +109,13 @@ export const broadcastTransaction = async (transaction) => {
     // Iterate through each peer and send the broadcast request
     for (const peer of peers) {
         const { ip, port } = peer;
+
+        // Skip broadcasting to the current node
+        if (ip === process.env.IP) {
+            console.log(`Skipping broadcast to current node ${ip}`);
+            continue;
+        }
+
         const url = `http://${ip}:${port}/node/recieve/txn`;
 
         // Create a promise for the request
@@ -128,16 +135,23 @@ export const broadcastTransaction = async (transaction) => {
     await Promise.all(promises);
 };
 
+
 // Function to broadcast the mined block to all peer nodes
 export const broadcastBlock = async (block) => {
     // Load peer nodes from the local storage
     const peerNodes = loadPeerNodes();
 
-    // Iterate through all peer nodes and send a POST request to /broadcast/block
+    // Iterate through all peer nodes and send a POST request to /node/recieve/block
     const broadcastPromises = peerNodes.map(async (node) => {
+        // Skip broadcasting to the current node
+        if (node.ip === process.env.IP) {
+            console.log(`Skipping broadcast to current node ${node.ip}`);
+            return;
+        }
+
         try {
-            // Send the POST request to the /broadcast/block endpoint of each node
-            await axios.post(`http://${node.ip}:${node.port}/node/recieve/block`, block);
+            // Send the POST request to the /node/recieve/block endpoint of each node
+            await axios.post(`http://${node.ip}:${node.port}/node/recieve/block`, { incomingBlock: block });
             console.log(`Successfully broadcasted block to node ${node.ip}:${node.port}`);
         } catch (error) {
             console.error(`Failed to broadcast block to node ${node.ip}:${node.port}: ${error.message}`);
@@ -147,6 +161,7 @@ export const broadcastBlock = async (block) => {
     // Wait for all broadcast operations to complete
     await Promise.all(broadcastPromises);
 };
+
 
 // Function to broadcast updated peer data
 export const syncPeerDataWithOtherNodes = async (peerNodes) => {

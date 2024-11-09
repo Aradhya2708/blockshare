@@ -94,17 +94,23 @@ export const submitTxn = async (req, res) => {
 
     if (isMempoolFull()) {
 
-        // mine
-        const minedBlock = await mineBlock();
-
-        // add to local blockchain
-        addBlockToBlockchain(minedBlock)
-
-        // broadcast block
-        broadcastBlock(minedBlock);
-
-        // clear mempool
-        clearMempool();
+        mineBlock()
+            .then((minedBlock) => {
+                console.log("Block has been mined:", minedBlock);
+                return addBlockToBlockchain(minedBlock);
+            })
+            .then((minedBlock) => {
+                console.log("Block added to blockchain:", minedBlock);
+                return broadcastBlock(minedBlock);
+            })
+            .then(() => {
+                console.log("Block broadcasted successfully.");
+                clearMempool();
+            })
+            .catch((error) => {
+                console.error("Error in mining process:", error);
+                res.status(500).json({ error: "Error in mining process" });
+            });
     }
 
     res.status(200).json({

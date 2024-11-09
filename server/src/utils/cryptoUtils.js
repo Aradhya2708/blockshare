@@ -90,15 +90,15 @@ export async function getStateOfAddress(address) {
 // Block utils
 
 export function verifyBlock(block) {
+    console.log(block);
+    const { prevBlockHash, txns, blockNumber, nonce, hash } = block;
+    const data = `${prevBlockHash}${JSON.stringify(txns)}${blockNumber}${nonce}`
+    const calcHash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
 
-    const data = `${block.prevBlockHash}${block.txns}${block.blockNumber}${block.nonce}`
-    const hash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
-
-    return hash === block.blockHash;
+    return calcHash === hash;
 }
 
 export const mineBlock = async () => {
-    console.log("mining...")
     const txns = loadMempool();
 
     // let message = "nonce1";
@@ -125,9 +125,7 @@ export const mineBlock = async () => {
     // console.log(JSON.stringify(txns));
     const { nonce, hash } = await getNonceAndHash((data));
     console.log("mined!");
-    console.log("bh = ", hash);
     const newBlock = { prevBlockHash, txns, blockNumber, nonce, hash };
-    console.log("nbph, ", newBlock.prevBlockHash)
     return newBlock;
 }
 
@@ -159,9 +157,7 @@ function runSha256(baseString, k) {
 // CPP function [MINING]
 async function getNonceAndHash(message) {
     try {
-        console.log('Printing message', message);
         const { result, hash } = await runSha256(message, 3);
-        console.log("result and hash == ")
         console.log(result, hash);
         const nonce = parseInt(result);
         return { nonce, hash };

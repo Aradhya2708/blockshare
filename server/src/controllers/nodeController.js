@@ -90,17 +90,23 @@ export const recieveTxn = async (req, res) => {
 
         if (isMempoolFull()) {
 
-            // mine
-            const minedBlock = await mineBlock();
-
-            // add to local blockchain
-            await addBlockToBlockchain();
-
-            // broadcast block
-            await broadcastBlock(minedBlock);
-
-            // clear mempool
-            clearMempool();
+            mineBlock()
+                .then((minedBlock) => {
+                    console.log("Block has been mined:", minedBlock);
+                    return addBlockToBlockchain(minedBlock);
+                })
+                .then((minedBlock) => {
+                    console.log("Block added to blockchain:", minedBlock);
+                    return broadcastBlock(minedBlock);
+                })
+                .then(() => {
+                    console.log("Block broadcasted successfully.");
+                    clearMempool();
+                })
+                .catch((error) => {
+                    console.error("Error in mining process:", error);
+                    res.status(500).json({ error: "Error in mining process" });
+                });
         }
         // Respond with success
         res.status(200).json({ message: 'Transaction recieved successfully', transaction });
@@ -110,19 +116,29 @@ export const recieveTxn = async (req, res) => {
     }
 };
 
-export const recieveBlock = async (req, res) => {
+export const receiveBlock = async (req, res) => {
+    const { incomingBlock } = req.body;
 
-    const incomingBlock = req.body.block;
-    // verify the block hash and nonce
-    if (!verifyBlock(incomingBlock)) {
-        res.status(400).json({ error: `Block not verified` })
-    };
+    console.log("Incoming block is", incomingBlock);
 
-    // add to local blockchain
-    await addBlockToBlockchain(incomingBlock)
+    // 1. Verify the block hash and nonce
+    const isBlockValid = verifyBlock(incomingBlock);
+    if (!isBlockValid) {
+        return res.status(400).json({ error: `Block not verified` });
+    }
+    console.log("Block verified successfully");
 
-}
+    // 2. Add the verified block to the local blockchain
+    try {
+        await addBlockToBlockchain(incomingBlock);
+        console.log("Block added to local blockchain successfully");
 
+        res.status(200).json({ message: 'Block received and added successfully' });
+    } catch (error) {
+        console.error("Error adding block to blockchain:", error);
+        res.status(500).json({ error: "Error adding block to blockchain" });
+    }
+};
 export const syncBlockchain = async (req, res) => {
     // 1. get blocks[] from blockchain
 

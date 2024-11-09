@@ -983,6 +983,7 @@ string processCommand(const string& command, MerklePatriciaTree& blockchainState
     }
 
     else if (command.rfind("ADD_BLOCK", 0) == 0) {
+        cout << "ADDING BLOCK .... ";
         istringstream iss(command);
         string commandType;
         string prevHash;
@@ -993,10 +994,10 @@ string processCommand(const string& command, MerklePatriciaTree& blockchainState
         iss >> commandType;
 
         iss >> prevHash >> message >> blockNumber >> blockHash;
-
+        cout << prevHash << message << blockNumber << blockHash;
         auto newBlock = make_shared<Block>(prevHash, message, blockNumber, blockHash);
         blockchain.addBlock(newBlock);
-
+        blockchain.printBlockchain();
         return "1";
     }
 

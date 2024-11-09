@@ -134,31 +134,32 @@ export async function loadBlockchain() {
 
 export const addBlockToBlockchain = async (newBlock) => {
 
-    console.log("nbabtt ", newBlock);
-
-    const prevBlockHash = newBlock.prevBlockHash;
-    const blockNumber = newBlock.blockNumber;
-    const hash = newBlock.blockHash;
-    
+    // const newBlock = { prevBlockHash, txns, blockNumber, nonce, hash }
+    const { prevBlockHash, txns, blockNumber, nonce, hash } = newBlock
     // Message is of type string input = "nonce1,[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:5:120:sign1]"
-    let message = toString(newBlock.nonce);
+    let message = "";
+    message += nonce;
     message += ",[";
-    for (let txn in newBlock.txns) {
-        message += txn.sender;
+    for (let i = 0; i < txns.length; i++) {
+        console.log("txn == ", txns[i]);
+        message += txns[i].sender;
         message += ":";
-        message += txn.recipient;
+        message += txns[i].recipient;
         message += ":";
-        message += txn.nonce;
+        message += txns[i].nonce;
         message += ":";
-        message += txn.amt;
+        message += txns[i].amt;
         message += ":";
-        message += txn.sign;
+        message += txns[i].sign;
         message += ",";
     }
     message += "]";
 
+
     const response = await sendCommand(`ADD_BLOCK ${prevBlockHash} ${message} ${blockNumber} ${hash}`);
     if (response === "1") console.log("Block Added Successfully");
+
+    return newBlock;
 }
 
 export async function getLocalBlockchainLength() {

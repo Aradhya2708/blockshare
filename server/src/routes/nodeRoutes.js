@@ -1,5 +1,5 @@
 import express from 'express';
-import { recieveTxn, recieveBlock, syncBlockchain, syncPeers, pingNode, requestSyncPeers, requestSyncBlockchain } from '../controllers/nodeController.js';
+import { recieveTxn, receiveBlock, syncBlockchain, syncPeers, pingNode, requestSyncPeers, requestSyncBlockchain } from '../controllers/nodeController.js';
 import { verifyNodeRequest, calculateBlockchainLength } from '../middlewares/nodeAuth.js';
 
 const router = express.Router();
@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/recieve/txn', verifyNodeRequest, recieveTxn);
 
 // Route for recieving block from peer nodes
-router.post('/recieve/block', verifyNodeRequest, recieveBlock);
+router.post('/recieve/block', verifyNodeRequest, receiveBlock);
 
 // Route for syncing the blockchain (after mining block)
 router.post('/sync/blockchain', verifyNodeRequest, syncBlockchain);
