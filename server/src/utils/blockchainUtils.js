@@ -148,37 +148,16 @@ export const addBlockToBlockchain = async (newBlock) => {
 }
 
 export async function getLocalBlockchainLength() {
-    // const blockchain = loadBlockchain();
-    // if (blockchain) {
-    //     return blockchain.blockchainHeader.blockchainLength;
-    // }
-    // else {
-    //     console.error(`Failed to load Blockchain`)
-    // }
-
-    // to blockchain.exe
+    const response = await sendCommand(`GET_CONFIRMED_LENGTH`);
+    return parseInt(response);
 }
 
 export async function getPrevBlockHash() {
-    // const blockchain = loadBlockchain();
-    // if (blockchain) {
-    //     return blockchain.blocks[blockchain.blockchainHeader.blockchainLength].blockHash;
-    // }
-    // else {
-    //     console.error(`Failed to load Blockchain`)
-    // }
-
-    // to blockchain.exe
+    const response = await sendCommand(`GET_LAST_HASH`);
+    return response;
 }
 
 export async function getBlockNumber() {
-    // const blockchain = loadBlockchain();
-    // if (blockchain) {
-    //     return blockchain.blocks[blockchain.blockchainHeader.blockchainLength].blockNumber;
-    // }
-    // else {
-    //     console.error(`Failed to load Blockchain`)
-    // }
-
-    // return height of leftmost branch
+    const response = await sendCommand(`GET_LAST_LENGTH`);
+    return parseInt(response);
 }
