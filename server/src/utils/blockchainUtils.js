@@ -110,15 +110,6 @@ export async function loadBlockchain() {
     return blockchain;
 }
 
-export async function saveBlockchain(blockchain) {
-    // remove existing make new
-    // try {
-    //     fs.writeFileSync(BLOCKCHAIN_FILE, JSON.stringify(blockchain, null, 2));
-    //     console.log('Blockchain saved successfully.');
-    // } catch (error) {
-    //     console.error('Error saving blockchain:', error.message);
-    // }
-}
 
 export const addBlockToBlockchain = async (newBlock) => {
 

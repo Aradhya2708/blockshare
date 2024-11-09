@@ -91,7 +91,7 @@ export async function getStateOfAddress(address1) {
 
 export function verifyBlock(block) {
 
-    const data = `${block.prevBlockHash}${block.transactions}${block.blockNumber}${block.nonce}`
+    const data = `${block.prevBlockHash}${block.txns}${block.blockNumber}${block.nonce}`
     const hash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
 
     return hash === block.blockHash;
@@ -129,5 +129,6 @@ function runSha256(baseString, k) {
 // CPP function [MINING]
 function getNonceAndHash(message) {
     const { result, hash } = runSha256(message, 5);
-    return { result, hash }
+    const nonce = result.parseInt();
+    return { nonce, hash };
 }

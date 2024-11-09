@@ -93,12 +93,10 @@ export const getIPv4FromIPv6 = (ip) => {
 // Ping the node to check if it's alive and functional // error. /node instead of /blockchain 
 export const pingNodeUtil = async (ip, port) => {
     try {
-        const ipv4 = getIPv4FromIPv6(ip);
-        const response = await axios.get(`http://${ipv4}:${port}/node/ping`);
+        const response = await axios.get(`http://${ip}:${port}/node/ping`);
         return response.status === 200;
     } catch (error) {
-        const ipv4 = getIPv4FromIPv6(ip);
-        console.error(`Failed to ping node ${ipv4}:${port}: ${error.message}`);
+        console.error(`Failed to ping node ${ip}:${port}: ${error.message}`);
         return false;
     }
 };
