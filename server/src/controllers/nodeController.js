@@ -81,10 +81,10 @@ export const recieveTxn = async (req, res) => {
         }
 
         // 4. Add transaction to the mempool
-        const addedToMempool = addToMempool(transaction);
-        if (!addedToMempool) {
-            return res.status(500).json({ error: 'Failed to add transaction to mempool' });
-        }
+        addToMempool(transaction);
+        // if (!addedToMempool) {
+        //     return res.status(500).json({ error: 'Failed to add transaction to mempool' });
+        // }
 
         showMempool()
 
