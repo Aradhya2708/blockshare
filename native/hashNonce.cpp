@@ -19,7 +19,7 @@ const unsigned int SHA256_K[64] = {
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-// SHA-256 utility functions
+// Utility functions for SHA-256
 unsigned int rotr(unsigned int x, unsigned int n) { return (x >> n) | (x << (32 - n)); }
 unsigned int ch(unsigned int x, unsigned int y, unsigned int z) { return (x & y) ^ (~x & z); }
 unsigned int maj(unsigned int x, unsigned int y, unsigned int z) { return (x & y) ^ (x & z) ^ (y & z); }
@@ -89,9 +89,9 @@ string sha256(const string &input) {
 }
 
 string generateNonce() {
-    const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const string chars = "0123456789";
     string nonce;
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 10; ++i) {
         nonce += chars[rand() % chars.length()];
     }
     return nonce;
@@ -113,15 +113,22 @@ pair<string, string> findNonceWithLeadingZeros(const string &input, int k) {
         resultHash = sha256(input + nonce);
     } while (!hasLeadingZeros(resultHash, k));
 
-    return {input + nonce, resultHash};
+    return { nonce, resultHash};
 }
 
-int main() {
-    string input;
-    int k=4;//LEADING NO OF ZEROS
-    cin >> input;
-    auto [result, hash] = findNonceWithLeadingZeros(input, k);
-    cout << "Resulting string + nonce: " << result << endl;
-    cout << "Hash: " << hash << endl;
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        cerr << "Usage: " << argv[0] << " <baseString> <k>" << endl;
+        return 1;
+    }
+
+    string baseString = argv[1];
+    int k = stoi(argv[2]);
+
+    auto out = findNonceWithLeadingZeros(baseString, k);
+
+    // Output result in JSON format
+    cout << "{\"result\": \"" << out.first << "\", \"hash\": \"" << out.second << "\"}" << endl;
+
     return 0;
 }
