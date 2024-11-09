@@ -1,6 +1,5 @@
 import express from 'express';
 import { registerNode, submitTxn, checkBalanceByAdd, getState } from '../controllers/blockchainController.js';
-import { generateKeyPair } from 'crypto';
 
 const router = express.Router();
 
