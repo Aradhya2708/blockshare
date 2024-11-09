@@ -118,6 +118,10 @@ public:
             return false;  // Block cannot be confirmed if the parent is not confirmed
         }
 
+        if( block->parent->children.size() > 1){
+            return false;
+        }
+
         // Check if the chain is linear for k steps (i.e., each block has only one child)
         shared_ptr<Block> tempBlock = block;
         for (int i = 0; i < k; i++) {
@@ -132,7 +136,7 @@ public:
 
         // If all checks passed, confirm the block and add it to the confirmed blockchain
         confirmedBlockchain.push_back(block);        
-
+        // execute here
         return true;
     }
 
@@ -140,8 +144,8 @@ public:
         if (block->children.size() <= 1) {
             cout << "No fork detected. Block " << block->hash << " has " << block->children.size() << " children.\n";
             if(block->parent != nullptr)
-                if(isConfirmed(block->parent))
-                     return; // found confirmed blockchain
+                // if(isConfirmed(block->parent))
+                //      return; // found confirmed blockchain
                 resolveFork(block->parent);
             return;  // No fork, nothing to resolve
         }
@@ -178,8 +182,8 @@ public:
             }
         }
 
-        if(isConfirmed(block->parent))
-            return; // found confirmed blockchain
+        // if(isConfirmed(block->parent))
+        //     return; // found confirmed blockchain
 
         resolveFork(block->parent);
     }
@@ -213,10 +217,6 @@ public:
             cout << "Pruned child " << child->hash << " from parent " << parent->hash << endl;
         }
     }
-
-
-
-
 
     void printBlockchain() {
         cout << "\nBlockchain Structure:\n";
@@ -268,6 +268,13 @@ int main() {
         auto newBlock = make_shared<Block>(prevHash, message, blockNumber, hash);
         blockchain.addBlock(newBlock);
         blockchain.printBlockchain();
+
+        cout << "confirmed: ";
+
+        for(int i = 0; i<blockchain.confirmedBlockchain.size(); i++){
+            cout << blockchain.confirmedBlockchain[i]->hash;
+        }
+        cout << endl;
     }
 
     return 0;

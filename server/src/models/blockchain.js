@@ -1,7 +1,6 @@
 // {
 //     "blockchainHeader": {
 //         "blockchainLength": 3,
-//         "blockchainDifficulty": 2
 //     },
 //     "blocks": [
 //         {
@@ -16,8 +15,8 @@
 //                     "sign": "signature_data2"
 //                 }
 //             ],
-//             "blockNumber": 0,
 //             "nonce": "0", 
+//             "blockNumber": 0,
 //             "blockHash": "hash_of_genesis_block"
 //         },
 //         {
