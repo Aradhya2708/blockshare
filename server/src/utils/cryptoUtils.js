@@ -74,7 +74,7 @@ export async function loadBlockchainState() {
     return state;
 }
 
-export async function getStateOfAddress(address) {
+export async function getStateOfAddress(address1) {
     const response = await sendCommand(`GET_BY_ADDRESS ${address}`);
     // "12:16" [CHECK]
     const nonce = response.split(":")[1];
