@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { loadMempool } from './mempoolUtils.js';
 import { getBlockNumber, getPrevBlockHash } from './blockchainUtils.js';
 import net from "net";
+import { exec } from 'child_process';
 
 function sendCommand(command) {
     return new Promise((resolve, reject) => {
@@ -54,8 +55,13 @@ export async function getBalanceByAddress(address) {
 // Load the current blockchain state
 export async function loadBlockchainState() {
     const response = await sendCommand(`GET_ALL`)
-    // key:amt:nonce,key:amt:nonce
-
+    const state = response.split(',').map(entry => ({
+        [entry.split(':')[0]]: {
+            balance: entry.split(':')[1],
+            nonce: entry.split(':')[2]
+        }
+    }));
+    return state;
 }
 
 export async function getStateOfAddress(address) {
@@ -92,7 +98,26 @@ export const mineBlock = async () => {
     return newBlock;
 }
 
+function runSha256(baseString, k) {
+    // Run the C++ executable with the base string and number of leading zeros
+    exec(`C:/Projectrs/DSA_PROJECT/blockshare/native/hashNonce.exe "${baseString}" ${k}`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.error(`stderr: ${stderr}`);
+            return;
+        }
+        // Parse and log the JSON output from the C++ program
+        const output = JSON.parse(stdout.trim());
+        console.log("Resulting string + nonce:", output.result);
+        console.log("Hash:", output.hash);
+    });
+}
+getNonceAndHash("arpan")
 // CPP function [MINING]
 async function getNonceAndHash(message) {
+    runSha256(message,5);
     // message + 0 = 0000hash 
 }
