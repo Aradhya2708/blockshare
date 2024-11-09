@@ -982,11 +982,17 @@ string processCommand(const string& command, MerklePatriciaTree& blockchainState
         return data;
     }
 
-    else if (command.rfind("ADD_BLOCK", 0) == 0){
-        string prevHash = "";
-        string message = "";
-        int blockNumber = 0;
-        string blockHash = "";
+    else if (command.rfind("ADD_BLOCK", 0) == 0) {
+        istringstream iss(command);
+        string commandType;
+        string prevHash;
+        string message;
+        int blockNumber;
+        string blockHash;
+
+        iss >> commandType;
+
+        iss >> prevHash >> message >> blockNumber >> blockHash;
 
         auto newBlock = make_shared<Block>(prevHash, message, blockNumber, blockHash);
         blockchain.addBlock(newBlock);
