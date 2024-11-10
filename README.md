@@ -40,19 +40,21 @@ g++ hashNonce.cpp -o hashNonce
 
 ## Running a Node
 
-1. Start the Node.js server:
+1. Create .env with IP and PORT
+
+2. Start the Node.js server:
 ```bash
 npm run dev
 ```
 
-2. Execute the blockchain core:
+3. Execute the blockchain core:
 ```bash
 ./blockchain
 ```
 
-3. Add peer information in localdb/peers.json
+4. Add peer information in localdb/peers.json
 
-## API Endpoints
+## API Endpoints for Client
 
 ### Join Network
 ```bash
@@ -93,14 +95,6 @@ curl http://localhost:3000/balance/0x123...abc
 {
   "account": "0x123...abc",
   "balance": 1000
-}
-```
-
-### Transaction Response
-```json
-{
-  "status": "success",
-  "transaction_hash": "0x456...def"
 }
 ```
 
