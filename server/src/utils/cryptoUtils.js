@@ -48,7 +48,8 @@ export async function verifyNonce(sender, nonce) {
 }
 
 export async function getBalanceByAddress(address) {
-    const balance = 0; // CPP function
+    const { balance, nonce } = await getStateOfAddress(address);
+    console.log(balance);
     return balance;
 }
 
@@ -69,8 +70,13 @@ export async function loadBlockchainState() {
 export async function getStateOfAddress(address) {
     const response = await sendCommand(`GET_BY_ADDRESS ${address}`);
     // "12:16" [CHECK]
-    const nonce = response.split(":")[1];
-    const balance = response.split(":")[0];
+    const nonceStr = response.split(":")[1];
+    const balanceStr = response.split(":")[0];
+
+    console.log("tis balance str", balanceStr);
+
+    const balance = parseInt(balanceStr)
+    const nonce = parseInt(nonceStr);
 
     return { balance, nonce };
 }

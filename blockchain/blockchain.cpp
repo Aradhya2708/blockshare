@@ -64,7 +64,7 @@ public:
        
         confirmedLength = 0;
 
-        auto genesisBlock = make_shared<Block>("0", "0,[0:0:0:0:0,]", 1, "1"); // 1:0,[0:0:0:0:0,]:0:0
+        auto genesisBlock = make_shared<Block>("0", "0,[0:0:0:0:0,]", 1, "0f44db13f0aab69746538af21ef429884bc4b275b397352044e8ee7a4cf142bb"); // 1:0,[0:0:0:0:0,]:0:0
         addBlock(genesisBlock);
         Genesis = genesisBlock;
         confirmedBlockchain.push_back(genesisBlock);
@@ -915,6 +915,7 @@ public:
 
         // Transaction Successful
         cout << "Executed Transaction Successfly";
+        visualizeTree();
         return 1;
 
     }

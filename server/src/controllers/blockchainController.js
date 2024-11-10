@@ -123,6 +123,7 @@ export const submitTxn = async (req, res) => {
 export const checkBalanceByAdd = async (req, res) => {
     const { address } = req.params;
     const balance = await getBalanceByAddress(address)
+    console.log(balance);
 
     // Return the balance of the address
     res.status(200).json({
