@@ -17,6 +17,7 @@ A blockchain implementation with C++ core and JavaScript API layer. This project
 - Node.js (v14 or higher)
 - C++ compiler (supporting C++11 or higher)
 - npm or yarn package manager
+- Machine supporting WinSock2
 
 ## Installation
 
