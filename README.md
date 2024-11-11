@@ -10,6 +10,8 @@ A blockchain implementation with C++ core and JavaScript API layer. This project
 - Digital signature verification
 - RESTful API interface
 
+> Note: BlockShare currently works on Local Networks over the same WiFi connection. It serves as an excellent resource for anyone wanting to learn theoretical concepts of blockchain and practical blockchain development. 
+
 ## Prerequisites
 
 - Node.js (v14 or higher)
@@ -58,7 +60,8 @@ npm run dev
 
 ### Join Network
 ```bash
-curl -X POST http://localhost:3000/contribute \
+# say one of the nodes in the local network is running over 172.12.345.678:3000
+curl -X POST http://172.12.345.678:3000/blockchain/contribute \
   -H "Content-Type: application/json" \
   -d '{
     "provided_port": 8080,
@@ -67,7 +70,7 @@ curl -X POST http://localhost:3000/contribute \
 
 ### Submit Transaction
 ```bash
-curl -X POST http://localhost:3000/submit-txn \
+curl -X POST http://172.12.345.678:3000/blockchain/submit-txn \
   -H "Content-Type: application/json" \
   -d '{
     "sender": "sender_address",
@@ -80,12 +83,12 @@ curl -X POST http://localhost:3000/submit-txn \
 
 ### Get Total Balance
 ```bash
-curl http://localhost:3000/balance
+curl http://172.12.345.678:3000/blockchain/balance
 ```
 
 ### Get Account Balance
 ```bash
-curl http://localhost:3000/balance/0x123...abc
+curl http://172.12.345.678:3000/blockchain/balance/0x123...abc
 ```
 
 ## Response Formats
