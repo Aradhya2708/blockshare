@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockshare Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-zinc-900 text-white p-10">
+    <div class="w-full">
+        <!-- Header Section -->
+        <div class="flex justify-between items-center mb-5">
+            <h1 class="text-3xl">Welcome, <%= user.username %> 👋🏻</h1>
+            <div class="flex gap-3">
+                <form action="/logout" method="post">
+                    <input type="submit" value="Logout" class="px-4 py-2 bg-red-500 rounded-md">
+                </form>
+            </div>
+        </div>
+
+        <!-- Contribute Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl mb-2">Contribute</h2>
+            <form action="/contribute" method="post">
+                <textarea type="number" placeholder="Enter your port information" name="provided_port" class="w-full p-3 outline-none resize-none bg-zinc-700 border-2 border-zinc-500 rounded-md mb-2"></textarea>
+                <button type="submit" class="px-5 py-2 bg-yellow-500 rounded-md">Contribute</button>
+            </form>
+        </div>
+
+        <!-- Submit Transaction Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl mb-2">Submit Transaction</h2>
+            <form action="/submit-txn" method="post" id="transactionForm">
+                <input type="text" name="sender" placeholder="Sender Public Key" class="w-full p-3 bg-zinc-700 border-2 border-zinc-500 rounded-md mb-2" required>
+                <input type="text" name="recipient" placeholder="Recipient Public Key" class="w-full p-3 bg-zinc-700 border-2 border-zinc-500 rounded-md mb-2" required>
+                <input type="number" name="nonce" placeholder="Nonce" class="w-full p-3 bg-zinc-700 border-2 border-zinc-500 rounded-md mb-2" required>
+                <input type="number" name="amount" placeholder="Amount" class="w-full p-3 bg-zinc-700 border-2 border-zinc-500 rounded-md mb-2" required>
+
+                <button type="button" onclick="openSignatureModal()" class="px-5 py-2 bg-blue-500 rounded-md" id="signButton">Sign</button>
+                <button type="submit" class="px-5 py-2 bg-green-500 rounded-md hidden" id="submitButton">Submit</button>
+            </form>
+        </div>
+
+        <!-- Balance Inquiry Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl mb-2">Check Balance</h2>
+            <form action="/balance" method="post">
+                <input type="text" name="address" placeholder="Enter Public Key" class="w-full p-3 bg-zinc-700 border-2 border-zinc-500 rounded-md mb-2" required>
+                <button type="submit" class="px-5 py-2 bg-yellow-500 rounded-md">Get Balance</button>
+            </form>
+        </div>
+
+        <!-- Key Pair Generation Section -->
+        <div>
+            <h2 class="text-2xl mb-2">Generate Key Pair</h2>
+            <button onclick="generateKeys()" class="px-5 py-2 bg-blue-500 rounded-md">Generate Key Pair</button>
+        </div>
+
+        <!-- Key Pair Modal -->
+        <div id="keyModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-zinc-800 p-5 rounded-md w-1/3">
+                <h3 class="text-2xl mb-3">Generated Key Pair</h3>
+                <p><strong>Public Key:</strong></p>
+                <p id="publicKey" class="bg-zinc-700 p-3 rounded-md mb-2" style="overflow-wrap: break-word;"></p>
+                <p><strong>Private Key:</strong></p>
+                <p id="privateKey" class="bg-zinc-700 p-3 rounded-md mb-3" style="overflow-wrap: break-word;"></p>
+                <button onclick="closeKeyModal()" class="px-5 py-2 text-white rounded-md">Close</button>
+            </div>
+        </div>
+
+        <!-- Signature Modal -->
+        <div id="signatureModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+            <div class="bg-zinc-800 p-5 rounded-md w-1/3">
+                <h3 class="text-2xl mb-3">Enter Private Key</h3>
+                <input type="text" name="privateKey" id="privateKey" placeholder="Private Key" class="w-full p-3 bg-zinc-700 border-2 border-zinc-500 rounded-md mb-3">
+                <button onclick="signTransaction()" class="px-5 py-2 bg-yellow-500 rounded-md">Sign</button>
+                <button onclick="closeSignatureModal()" class="px-5 py-2 text-white rounded-md">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            async function generateKeys() {
+            try {
+                const response = await fetch('/generate-keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    console.log("Public Key:", data.publicKey);
+                    console.log("Private Key:", data.privateKey);
+                    openKeyModal();
+                    document.getElementById('publicKey').textContent = data.publicKey;
+                    document.getElementById('privateKey').textContent = data.privateKey;
+                } else {
+                    console.error("Error:", data.error);
+                }
+            } catch (error) {
+                console.error("Error generating keys:", error);
+            }
+        }
+
+        // Function to handle signature modal
+        function openSignatureModal() {
+            document.getElementById('signatureModal').classList.remove('hidden');
+        }
+
+        function closeSignatureModal() {
+            document.getElementById('signatureModal').classList.add('hidden');
+        }
+
+        // Function to sign and verify the transaction
+        async function signTransaction() {
+            const sender = document.querySelector('[name="sender"]').value;
+            const recipient = document.querySelector('[name="recipient"]').value;
+            const amt = parseInt(document.querySelector('[name="amount"]').value, 10);
+            const nonce = parseInt(document.querySelector('[name="nonce"]').value, 10);
+            const privateKey = document.getElementsByName('privateKey')[0].value;
+            try {
+                // console.log("priv = ", privateKey)
+                const response = await fetch('/sign-transaction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sender, recipient, amt, nonce , privateKey})
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Verify the signature
+                    const verificationResponse = await fetch('/verify-signature',{
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            sender: data.senderPublicKey,
+                            recipient,
+                            amt,
+                            nonce,
+                            sign: data.signature
+                        })
+                    });
+
+                    const verificationData = await verificationResponse.json();
+
+                    if (verificationResponse.ok && verificationData.isValid) {
+                        // Signature is valid, proceed
+                        console.log("Signature verified successfully.");
+                        console.log(data.signature);
+                        closeSignatureModal();
+
+                        // Show the submit button and hide the sign button
+                        document.getElementById('signButton').classList.add('hidden');
+                        document.getElementById('submitButton').classList.remove('hidden');
+
+                        // Store the signed message and signature for submission
+                        document.getElementById('transactionForm').addEventListener('submit', function (event) {
+                            event.preventDefault(); // Prevent the default form submission
+
+                            // Prepare data to be sent
+                            const formData = {
+                                sender,
+                                recipient,
+                                amt,
+                                nonce,
+                                sign: data.signature
+                            };
+
+                            // Send the data to your node via a POST request
+                            fetch('/submit-txn', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(formData)
+                            })
+                            .then(response => response.json())
+                            .then(result => {
+                                console.log("Transaction submitted successfully:", result);
+                                alert("Transaction submitted successfully!");
+                            })
+                            .catch(error => {
+                                console.error("Error submitting transaction:", error);
+                                alert("Failed to submit transaction.");
+                            });
+                        });
+                    } else {
+                        console.error("Signature verification failed.");
+                        alert("Signature verification failed.");
+                    }
+                } else {
+                    console.error("Error signing transaction:", data.error);
+                    alert("Failed to sign transaction.");
+                }
+            } catch (error) {
+                console.error("Error during signature process:", error);
+            }
+        }
+
+        function openKeyModal() {
+            document.getElementById('keyModal').classList.remove('hidden');
+        }
+
+        function closeKeyModal() {
+            document.getElementById('keyModal').classList.add('hidden');
+        }   
+
+        function openSignatureModal() {
+            document.getElementById('signatureModal').classList.remove('hidden');
+        }
+
+        function closeSignatureModal() {
+            document.getElementById('signatureModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

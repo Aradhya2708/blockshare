@@ -1,0 +1,38 @@
+<%- include('./partials/header') %>
+            <div class="w-full h-screen flex px-20">
+                <div class="w-1/2 flex items-center justify-center h-screen">
+                    <div class="w-full px-32">
+                        <h3 class="text-4xl">welcome to <span class="text-blue-400 font-semibold">Blockshare</span></h3>
+                        <h4 class="text-2xl mb-5">create your account</h4>
+                        <form autocomplete="off" action="/register" method="post">
+                            <input
+                                class="bg-zinc-100 block w-full px-3 py-2 border-[1px] rounded-md mb-3 border-zinc-200"
+                                type="text" placeholder="Username" name="username">
+                            <input
+                                class="bg-zinc-100 block w-full px-3 py-2 border-[1px] rounded-md mb-3 border-zinc-200"
+                                type="email" placeholder="Email" name="email">
+                            <input
+                                class="bg-zinc-100 block w-full px-3 py-2 border-[1px] rounded-md mb-3 border-zinc-200"
+                                type="password" placeholder="Password" name="password">
+                            <input class="px-5 rounded-full py-3 mt-2 bg-blue-500 text-white" type="submit"
+                                value="Create My Account">
+                        </form>
+                    </div>
+                </div>
+                <div class="w-1/2 flex items-center justify-center h-screen">
+                    <div class="w-full px-32">
+                        <h4 class="text-2xl capitalize mb-5">login your account</h4>
+                        <form autocomplete="off" action="/login" method="post">
+                            <input
+                                class="block bg-zinc-100 w-full px-3 py-2 border-[1px] rounded-md mb-3 border-zinc-200"
+                                type="email" placeholder="Email" name="email">
+                            <input
+                                class="block bg-zinc-100 w-full px-3 py-2 border-[1px] rounded-md mb-3 border-zinc-200"
+                                type="password" placeholder="Password" name="password">
+                            <input class="px-5 block rounded-full py-3 mt-2 bg-blue-500 text-white" type="submit"
+                                value="Login">
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <%- include('./partials/footer') %>
