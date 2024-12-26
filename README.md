@@ -86,11 +86,6 @@ npm run dev
 
 4. Add peer information in ```/localdb/peers.json```
 
-5. Modify and execute Native Miner ```/native/hashNonce.cpp```
-```bash
-./hashNonce
-```
-
 
 ## 📡 API Endpoints for Client
 
