@@ -111,41 +111,60 @@ export const mineBlock = async () => {
     return newBlock;
 }
 
-function runSha256(baseString, k) {
-    return new Promise((resolve, reject) => {
-        // Run the C++ executable with the base string and number of leading zeros
-        exec(`"${exePath}" "${baseString}" ${k}`, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`Error: ${error.message}`);
-                return reject(error);
-            }
-            if (stderr) {
-                console.error(`stderr: ${stderr}`);
-                return reject(new Error(stderr));
-            }
-            try {
-                // Parse and log the JSON output from the C++ program
-                const output = JSON.parse(stdout.trim());
-                resolve(output);
-            } catch (parseError) {
-                reject(parseError);
-            }
-        });
-    });
-}
+// function runSha256(baseString, k) {
+//     return new Promise((resolve, reject) => {
+//         // Run the C++ executable with the base string and number of leading zeros
+//         exec(`"${exePath}" "${baseString}" ${k}`, (error, stdout, stderr) => {
+//             if (error) {
+//                 console.error(`Error: ${error.message}`);
+//                 return reject(error);
+//             }
+//             if (stderr) {
+//                 console.error(`stderr: ${stderr}`);
+//                 return reject(new Error(stderr));
+//             }
+//             try {
+//                 // Parse and log the JSON output from the C++ program
+//                 const output = JSON.parse(stdout.trim());
+//                 resolve(output);
+//             } catch (parseError) {
+//                 reject(parseError);
+//             }
+//         });
+//     });
+// }
 
 //console.log(runSha256("Arpan",5).then(console.log))
 
 // CPP function [MINING]
-async function getNonceAndHash(message) {
-    try {
-        const { result, hash } = await runSha256(message, 3);
-        console.log(result, hash);
-        const nonce = parseInt(result);
-        const blockHash = hash
-        return { nonce, blockHash };
-    } catch (error) {
-        console.error("Error in getNonceAndHash:", error);
-        return null;
+// async function getNonceAndHash(message) {
+//     try {
+//         const { result, hash } = await runSha256(message, 3);
+//         console.log(result, hash);
+//         const nonce = parseInt(result);
+//         const blockHash = hash
+//         return { nonce, blockHash };
+//     } catch (error) {
+//         console.error("Error in getNonceAndHash:", error);
+//         return null;
+//     }
+// }
+
+async function getNonceAndHash(message, k) {
+    const targetPrefix = "0".repeat(k); // The required prefix of zeros
+    let nonce = 0;
+    let hash;
+
+    while (true) {
+        const data = `${message}${nonce}`; // Concatenate message and nonce
+        hash = crypto.createHash("sha256").update(data).digest("hex");
+
+        if (hash.startsWith(targetPrefix)) {
+            break; // Found a hash that satisfies the condition
+        }
+
+        nonce++;
     }
+
+    return { nonce, hash };
 }
