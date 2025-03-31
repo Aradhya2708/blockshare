@@ -63,14 +63,15 @@ export const registerNode = async (req, res) => {
 
 // Submit a transaction
 export const submitTxn = async (req, res) => {
-    const { sender, recipient, amt, nonce, sign } = req.body;
+    const { sender, recipient, amt, data, nonce, sign } = req.body;
 
     if (!sender || !recipient || !amt || !nonce || !sign) {
         return res.status(400).json({ error: 'All fields (sender, recipient, amt, nonce, sign) are required' });
     }
+    const transaction = { sender, recipient, amt, data, nonce, sign };
 
     // 1. Verify the signature
-    const isSignatureValid = verifySignature(sender, recipient, amt, nonce, sign);
+    const isSignatureValid = verifySignature(transaction);
     if (!isSignatureValid) {
         return res.status(400).json({ error: 'Invalid signature' });
     }
@@ -84,7 +85,6 @@ export const submitTxn = async (req, res) => {
     console.debug("nonce validated")
 
     // 3. Broadcast the transaction to peers
-    const transaction = { sender, recipient, amt, nonce, sign };
     await broadcastTransaction(transaction);
 
     // 4. Add transaction to the mempool, mine if full

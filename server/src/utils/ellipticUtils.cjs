@@ -28,11 +28,13 @@ function generateKeyPair() {
  * @param {string} privateKeyHex - Sender's private key (hex format).
  * @returns {string} - The digital signature for the transaction.
  */
-function createSignature(senderPublicKey, recipient, amt, nonce, privateKeyHex) {
+function createSignature(transaction) {
+    const {senderPublicKey, recipient, amt, data, nonce, privateKeyHex} = transaction;
     const dataToSign = JSON.stringify({
         sender: senderPublicKey,
         recipient: recipient,
         amt: amt,
+        data: data || null,
         nonce: nonce
     });
 
@@ -53,11 +55,13 @@ function createSignature(senderPublicKey, recipient, amt, nonce, privateKeyHex) 
  * @param {string} signatureHex - The digital signature to verify (hex format).
  * @returns {boolean} - Returns true if the signature is valid, false otherwise.
  */
-function verifySignature(senderPublicKey, recipient, amt, nonce, signatureHex) {
+function verifySignature(transaction) {
+    const {senderPublicKey, recipient, amt, data, nonce, signatureHex} = transaction;
     const dataToVerify = JSON.stringify({
         sender: senderPublicKey,
         recipient: recipient,
         amt: amt,
+        data: data || null,
         nonce: nonce
     });
 
