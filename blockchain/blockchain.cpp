@@ -889,7 +889,7 @@ public:
             // Nonce Not Matched
             return -5;
         }
-        if (amountSent <= 0) {
+        if (amountSent < 0) {
             // Incorrect Amount Transferring
             return -6;
         } 
