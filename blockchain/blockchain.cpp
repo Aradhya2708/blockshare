@@ -170,8 +170,8 @@ public:
         // If all checks passed, confirm the block and add it to the confirmed blockchain
         // Aslo Execute its transactions
         confirmedBlockchain.push_back(block);      
-        cout << "executing : " << block->message << endl;
-        executeWholeBlockTransactions(block->message);
+        // cout << "executing : " << block->message << endl;
+        // executeWholeBlockTransactions(block->message);
         confirmedLength++;
         return true;
     }
