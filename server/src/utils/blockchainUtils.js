@@ -155,6 +155,8 @@ export const addBlockToBlockchain = async (newBlock) => {
         message += ":";
         message += transactions[i].amt;
         message += ":";
+        message += transactions[i].data;
+        message += ":";
         message += transactions[i].sign;
         message += ",";
     }

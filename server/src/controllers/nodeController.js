@@ -66,7 +66,7 @@ export const recieveTxn = async (req, res) => {
 
     try {
         // 1. Verify the signature
-        const isValidSignature = verifySignature(transaction.sender, transaction.recipient, transaction.amt, transaction.nonce, transaction.sign);
+        const isValidSignature = verifySignature(transaction);
         if (!isValidSignature) {
             console.error("Invalid Sign")
             return res.status(400).json({ error: 'Invalid signature' });
