@@ -170,8 +170,8 @@ public:
         // If all checks passed, confirm the block and add it to the confirmed blockchain
         // Aslo Execute its transactions
         confirmedBlockchain.push_back(block);      
-        // cout << "executing : " << block->message << endl;
-        // executeWholeBlockTransactions(block->message);
+        cout << "executing : " << block->message << endl;
+        executeWholeBlockTransactions(block->message);
         confirmedLength++;
         return true;
     }
@@ -867,7 +867,7 @@ public:
         return root ? root->getHash() : sha256("");
     }
 
-    int handleTransaction(string senderPublicKey, string recieverPublicKey, int senderNonce, int amountSent) {
+    int handleTransaction(string senderPublicKey, string recieverPublicKey, int senderNonce, int amountSent) { // also handle data
         if (senderPublicKey == "" || recieverPublicKey == "" || !senderNonce) {
             // Incomplete Data
             return -1;
@@ -925,7 +925,7 @@ Blockchain blockchain;
 MerklePatriciaTree blockchainState;
 void executeWholeBlockTransactions(string input) {
     // PARSE THE STRING
-    // INPUT IS OF TYPE string input = "nonce1,[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:5:120:sign1,]";
+    // INPUT IS OF TYPE string input = "nonce1,[sender1:recipient1:sendernonce1:amt1:data1:sign1,sender2:recipient2:sendernonce2:amt2:data2:sign2,sender3:recipient3:sendernonce3:amt3:data3:sign3,]";
     // GET THE NONCE
     size_t nonceStart = input.find(",") + 1;  // Find the first comma to get the nonce part
     size_t nonceEnd = input.find("[", nonceStart); // Find the opening bracket to get the end of nonce1
@@ -950,7 +950,8 @@ void executeWholeBlockTransactions(string input) {
         string recieverPublicKey = match[2];
         int senderNonce = stoi(match[3]);
         int amount = stoi(match[4]);
-        string sign = match[5];
+        string data = match[5];
+        string sign = match[6];
 
         // Call the function fxn with the extracted values
         // cout << "handlin txn = " << senderPublicKey<<recieverPublicKey<<senderNonce<<amount;
@@ -962,26 +963,25 @@ void executeWholeBlockTransactions(string input) {
 // MAIN FUNCTION TO HANDLE REQUESTS
 string processCommand(const string& command, MerklePatriciaTree& blockchainState, Blockchain& blockchain) {
 
-    // if (command.rfind("GET_BY_ADDRESS", 0) == 0) {
-    //     string publickKey = command.substr(15);
-    //     Value* data = blockchainState.get(publickKey);
-    //     if (data != nullptr) {
-    //         cout << data->amount << data->nonce << endl;
-    //         return (to_string(data->amount) + ":" + to_string(data->nonce));
-    //     }
-    // } 
+    if (command.rfind("GET_BY_ADDRESS", 0) == 0) {
+        string publickKey = command.substr(15);
+        Value* data = blockchainState.get(publickKey);
+        if (data != nullptr) {
+            cout << data->amount << data->nonce << endl;
+            return (to_string(data->amount) + ":" + to_string(data->nonce));
+        }
+    } 
 
-    // else if (command.rfind("GET_ALL", 0) == 0){
-    //     map<string, pair<int, int>> allData = blockchainState.getAllData();
-    //     string data = "";
-    //     for (const auto& entry : allData) {
-    //         data += entry.first + ":" + to_string(entry.second.first) + ":" + to_string(entry.second.second) + ",";
-    //     }
-    //     return data;
-    // }
+    else if (command.rfind("GET_ALL", 0) == 0){
+        map<string, pair<int, int>> allData = blockchainState.getAllData();
+        string data = "";
+        for (const auto& entry : allData) {
+            data += entry.first + ":" + to_string(entry.second.first) + ":" + to_string(entry.second.second) + ",";
+        }
+        return data;
+    }
 
-    // else 
-    if (command.rfind("GET_BLOCKCHAIN", 0) == 0){
+    else if (command.rfind("GET_BLOCKCHAIN", 0) == 0){
         string data = blockchain.giveBlockchainString();
         return data;
     }
