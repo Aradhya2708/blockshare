@@ -154,3 +154,27 @@ export const generateKeyPairRoute = async (req, res) => {
         privateKey
     })
 }
+
+export const getBlockchainAtTimestamp = async (req, res) => {
+    try {
+        const { timestamp } = req.query;
+        if (!timestamp) {
+            return res.status(400).json({ error: "Timestamp query parameter is required" });
+        }
+
+        const blockchain = await loadBlockchain();
+        const filteredBlocks = blockchain.blocks.filter(block => 
+            block.transactions.some(tx => parseInt(tx.timestamp) <= parseInt(timestamp))
+        );
+
+        res.json({
+            blockchainHeader: {
+                blockchainLength: filteredBlocks.length
+            },
+            blocks: filteredBlocks
+        });
+    } catch (error) {
+        console.error("Error fetching blockchain at timestamp:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
