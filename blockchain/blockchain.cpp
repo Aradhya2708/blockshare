@@ -962,25 +962,26 @@ void executeWholeBlockTransactions(string input) {
 // MAIN FUNCTION TO HANDLE REQUESTS
 string processCommand(const string& command, MerklePatriciaTree& blockchainState, Blockchain& blockchain) {
 
-    if (command.rfind("GET_BY_ADDRESS", 0) == 0) {
-        string publickKey = command.substr(15);
-        Value* data = blockchainState.get(publickKey);
-        if (data != nullptr) {
-            cout << data->amount << data->nonce << endl;
-            return (to_string(data->amount) + ":" + to_string(data->nonce));
-        }
-    } 
+    // if (command.rfind("GET_BY_ADDRESS", 0) == 0) {
+    //     string publickKey = command.substr(15);
+    //     Value* data = blockchainState.get(publickKey);
+    //     if (data != nullptr) {
+    //         cout << data->amount << data->nonce << endl;
+    //         return (to_string(data->amount) + ":" + to_string(data->nonce));
+    //     }
+    // } 
 
-    else if (command.rfind("GET_ALL", 0) == 0){
-        map<string, pair<int, int>> allData = blockchainState.getAllData();
-        string data = "";
-        for (const auto& entry : allData) {
-            data += entry.first + ":" + to_string(entry.second.first) + ":" + to_string(entry.second.second) + ",";
-        }
-        return data;
-    }
+    // else if (command.rfind("GET_ALL", 0) == 0){
+    //     map<string, pair<int, int>> allData = blockchainState.getAllData();
+    //     string data = "";
+    //     for (const auto& entry : allData) {
+    //         data += entry.first + ":" + to_string(entry.second.first) + ":" + to_string(entry.second.second) + ",";
+    //     }
+    //     return data;
+    // }
 
-    else if (command.rfind("GET_BLOCKCHAIN", 0) == 0){
+    // else 
+    if (command.rfind("GET_BLOCKCHAIN", 0) == 0){
         string data = blockchain.giveBlockchainString();
         return data;
     }
