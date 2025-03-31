@@ -2,7 +2,7 @@
 import { verifyNonce, loadBlockchainState, mineBlock, getBalanceByAddress } from '../utils/cryptoUtils.js';
 import { loadPeerNodes, savePeerNodes, broadcastTransaction, broadcastBlock, syncPeerDataWithOtherNodes, pingNodeUtil, getIPv4FromIPv6 } from '../utils/networkUtils.js';
 import { addToMempool, isMempoolFull, clearMempool, showMempool } from '../utils/mempoolUtils.js';
-import { addBlockToBlockchain } from '../utils/blockchainUtils.js';
+import { addBlockToBlockchain, loadBlockchain } from '../utils/blockchainUtils.js';
 import pkg from '../utils/ellipticUtils.cjs';
 const { verifySignature, generateKeyPair } = pkg
 
@@ -63,14 +63,18 @@ export const registerNode = async (req, res) => {
 
 // Submit a transaction
 export const submitTxn = async (req, res) => {
-    const { sender, recipient, amt, nonce, sign } = req.body;
+    const { sender, recipient, amt, data, nonce, sign } = req.body;
 
-    if (!sender || !recipient || !amt || !nonce || !sign) {
-        return res.status(400).json({ error: 'All fields (sender, recipient, amt, nonce, sign) are required' });
+    if (!sender || !recipient || !amt || !nonce || !sign ) {
+        return res.status(400).json({ error: 'All fields (sender, recipient, amt, nonce, sign, timestamp) are required' });
     }
 
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    const transaction = { sender, recipient, amt, data, nonce, timestamp, sign };
+
     // 1. Verify the signature
-    const isSignatureValid = verifySignature(sender, recipient, amt, nonce, sign);
+    const isSignatureValid = verifySignature(transaction);
     if (!isSignatureValid) {
         return res.status(400).json({ error: 'Invalid signature' });
     }
@@ -84,7 +88,6 @@ export const submitTxn = async (req, res) => {
     console.debug("nonce validated")
 
     // 3. Broadcast the transaction to peers
-    const transaction = { sender, recipient, amt, nonce, sign };
     await broadcastTransaction(transaction);
 
     // 4. Add transaction to the mempool, mine if full
@@ -151,3 +154,27 @@ export const generateKeyPairRoute = async (req, res) => {
         privateKey
     })
 }
+
+export const getBlockchainAtTimestamp = async (req, res) => {
+    try {
+        const { timestamp } = req.query;
+        if (!timestamp) {
+            return res.status(400).json({ error: "Timestamp query parameter is required" });
+        }
+
+        const blockchain = await loadBlockchain();
+        const filteredBlocks = blockchain.blocks.filter(block => 
+            block.transactions.some(tx => parseInt(tx.timestamp) <= parseInt(timestamp))
+        );
+
+        res.json({
+            blockchainHeader: {
+                blockchainLength: filteredBlocks.length
+            },
+            blocks: filteredBlocks
+        });
+    } catch (error) {
+        console.error("Error fetching blockchain at timestamp:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};

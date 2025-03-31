@@ -28,12 +28,15 @@ function generateKeyPair() {
  * @param {string} privateKeyHex - Sender's private key (hex format).
  * @returns {string} - The digital signature for the transaction.
  */
-function createSignature(senderPublicKey, recipient, amt, nonce, privateKeyHex) {
+function createSignature(transaction) { // clientside call
+    const {senderPublicKey, recipient, amt, data, nonce, timestamp, privateKeyHex} = transaction;
     const dataToSign = JSON.stringify({
         sender: senderPublicKey,
         recipient: recipient,
         amt: amt,
-        nonce: nonce
+        data: data || null,
+        nonce: nonce,
+        // timestamp: timestamp
     });
 
     const hash = crypto.createHash('sha256').update(dataToSign).digest('hex');
@@ -53,12 +56,15 @@ function createSignature(senderPublicKey, recipient, amt, nonce, privateKeyHex) 
  * @param {string} signatureHex - The digital signature to verify (hex format).
  * @returns {boolean} - Returns true if the signature is valid, false otherwise.
  */
-function verifySignature(senderPublicKey, recipient, amt, nonce, signatureHex) {
+function verifySignature(transaction) {
+    const {senderPublicKey, recipient, amt, data, nonce, timestamp, signatureHex} = transaction;
     const dataToVerify = JSON.stringify({
         sender: senderPublicKey,
         recipient: recipient,
         amt: amt,
-        nonce: nonce
+        data: data || null,
+        nonce: nonce,
+        // timestamp: timestamp
     });
 
     const hash = crypto.createHash('sha256').update(dataToVerify).digest('hex');

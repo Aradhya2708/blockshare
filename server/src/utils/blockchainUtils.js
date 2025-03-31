@@ -141,7 +141,7 @@ export const addBlockToBlockchain = async (newBlock) => {
 
     // const newBlock = { prevBlockHash, transactions, blockNumber, nonce, blockHash }
     const { prevBlockHash, transactions, blockNumber, nonce, blockHash } = newBlock
-    // Message is of type string input = "nonce1,[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:5:120:sign1]"
+    // INPUT IS OF TYPE string input = "nonce1,[sender1:recipient1:sendernonce1:amt1:data1:ts1:sign1,sender2:recipient2:sendernonce2:amt2:data2:ts1:sign2,sender3:recipient3:sendernonce3:amt3:data3:ts1:sign3,]";
     let message = "";
     message += nonce;
     message += ",[";
@@ -154,6 +154,10 @@ export const addBlockToBlockchain = async (newBlock) => {
         message += transactions[i].nonce;
         message += ":";
         message += transactions[i].amt;
+        message += ":";
+        message += transactions[i].data;
+        message += ":";
+        message += transactions[i].timestamp;
         message += ":";
         message += transactions[i].sign;
         message += ",";

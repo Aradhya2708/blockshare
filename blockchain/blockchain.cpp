@@ -867,7 +867,7 @@ public:
         return root ? root->getHash() : sha256("");
     }
 
-    int handleTransaction(string senderPublicKey, string recieverPublicKey, int senderNonce, int amountSent) {
+    int handleTransaction(string senderPublicKey, string recieverPublicKey, int senderNonce, int amountSent) { // also handle data
         if (senderPublicKey == "" || recieverPublicKey == "" || !senderNonce) {
             // Incomplete Data
             return -1;
@@ -889,7 +889,7 @@ public:
             // Nonce Not Matched
             return -5;
         }
-        if (amountSent <= 0) {
+        if (amountSent < 0) {
             // Incorrect Amount Transferring
             return -6;
         } 
@@ -925,7 +925,7 @@ Blockchain blockchain;
 MerklePatriciaTree blockchainState;
 void executeWholeBlockTransactions(string input) {
     // PARSE THE STRING
-    // INPUT IS OF TYPE string input = "nonce1,[abcd:efgh:5:120:sign1,qwer:tyui:6:135:sign2,abcd:efgh:5:120:sign1,]";
+    // INPUT IS OF TYPE string input = "nonce1,[sender1:recipient1:sendernonce1:amt1:data1:ts1:sign1,sender2:recipient2:sendernonce2:amt2:data2:ts1:sign2,sender3:recipient3:sendernonce3:amt3:data3:ts1:sign3,]";
     // GET THE NONCE
     size_t nonceStart = input.find(",") + 1;  // Find the first comma to get the nonce part
     size_t nonceEnd = input.find("[", nonceStart); // Find the opening bracket to get the end of nonce1
@@ -950,7 +950,9 @@ void executeWholeBlockTransactions(string input) {
         string recieverPublicKey = match[2];
         int senderNonce = stoi(match[3]);
         int amount = stoi(match[4]);
-        string sign = match[5];
+        string data = match[5];
+        string timestamp = match[6];
+        string sign = match[7];
 
         // Call the function fxn with the extracted values
         // cout << "handlin txn = " << senderPublicKey<<recieverPublicKey<<senderNonce<<amount;
