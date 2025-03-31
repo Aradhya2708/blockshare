@@ -1,0 +1,59 @@
+{
+    "blockchainHeader": {
+        "blockchainLength": 3
+    },
+    "blocks": [
+        {
+            "prevBlockHash": "0",
+            "transactions": [
+
+                {
+                    "sender": "address3",
+                    "recipient": "address4",
+                    "amt": 30,
+                    "nonce": "2",
+                    "data": "stringified json object",
+                    "timestamp": "timestamp",
+                    "sign": "signature_data2"
+                }
+            ],
+            "nonce": "0", 
+            "blockNumber": 0,
+            "blockHash": "hash_of_genesis_block"
+        },
+        {
+            "prevBlockHash": "hash_of_genesis_block",
+            "transactions": [
+                {
+                    "sender": "address5",
+                    "recipient": "address6",
+                    "amt": 20,
+                    "nonce": "3",
+                    "data": "stringified json object",
+                    "timestamp": "timestamp",
+                    "sign": "signature_data3"
+                }
+            ],
+            "blockNumber": 1,
+            "nonce": "12345",
+            "blockHash": "hash_of_second_block"
+        },
+        {
+            "prevBlockHash": "hash_of_second_block",
+            "transactions": [
+                {
+                    "sender": "address7",
+                    "recipient": "address8",
+                    "amt": 10,
+                    "nonce": "4",
+                    "data": "stringified json object",
+                    "timestamp": "timestamp",
+                    "sign": "signature_data4"
+                }
+            ],
+            "blockNumber": 2,
+            "nonce": "67890",
+            "blockHash": "hash_of_third_block"
+        }
+    ]
+}
