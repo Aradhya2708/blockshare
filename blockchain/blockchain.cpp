@@ -1,28 +1,39 @@
+
 #include <iostream>
 #include <vector>
 #include <string>
 #include <sstream>
 #include <memory>
 #include <unordered_map>
-#include <algorithm>  // Include this for std::max_element and std::find
+#include <algorithm>
 #include <map>
-#include <winsock2.h> // Windows sockets library
-#include <ws2tcpip.h> // Additional TCP/IP functionality for Windows
 #include <chrono>
 #include <regex>
+
+#ifdef _WIN32
+#include <winsock2.h> // Windows sockets library
+ #include <ws2tcpip.h> // Additional TCP/IP functionality for Windows
+ #pragma comment(lib, "Ws2_32.lib") // Link with Ws2_32.lib
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <cstring>
+#include <cerrno>
+#endif
 
 
 using namespace std;
 using namespace std::chrono;
-#pragma comment(lib, "Ws2_32.lib") // Link with Ws2_32.lib
+
 
 // GLOBAL VARIABLES
 int k = 2;           // The K number of above parents that have to have number(child) == 1 to it to be confirmed  
 int m = 2;           // Minimum Difference of lengths of two forks Before the smaller one can be deleted 
 
 void executeWholeBlockTransactions(string input);
-
-
 
 // Temporary Function to do Hashing ## Will be replaced by @Arpans Code
 // Just returns same string for now
@@ -277,10 +288,6 @@ public:
             cout << "Pruned child " << child->hash << " from parent " << parent->hash << endl;
         }
     }
-
-
-
-
 
     void printBlockchain() {
         cout << "\nBlockchain Structure:\n";
@@ -1024,7 +1031,9 @@ string processCommand(const string& command, MerklePatriciaTree& blockchainState
 }
 
 
-// //Testing
+
+
+#ifdef _WIN32
 int main() {
     blockchainState.insert("02a0a8ebb0c0eee0d31626cab16f7b5c82e6a93bc58767708310bfe8649f002a7a", 0, 0);       //MAIN ACCOUNT WITH 0 COINS
 
@@ -1042,7 +1051,7 @@ int main() {
 
     
 
-
+    // for 
     // FOR CONNECTION TO JS
     // CPP SERVER
 
@@ -1104,7 +1113,58 @@ int main() {
     WSACleanup();
     return 0;
 }
+#else // MacOS and linux 
+int main() {
+    blockchainState.insert("02a0a8ebb0c0eee0d31626cab16f7b5c82e6a93bc58767708310bfe8649f002a7a", 0, 0);
 
+    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket < 0) {
+        cerr << "Socket creation failed: " << strerror(errno) << "\n";
+        return 1;
+    }
+
+    sockaddr_in serverAddr{};
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_port = htons(8080);
+    
+
+    if (::bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+        cerr << "Bind failed: " << strerror(errno) << "\n";
+        close(serverSocket);
+        return 1;
+    }
+
+    if (listen(serverSocket, 3) < 0) {
+        cerr << "Listen failed: " << strerror(errno) << "\n";
+        close(serverSocket);
+        return 1;
+    }
+
+    cout << "Server is listening on port 8080...\n";
+
+    while (true) {
+        int clientSocket = accept(serverSocket, nullptr, nullptr);
+        if (clientSocket < 0) {
+            cerr << "Accept failed: " << strerror(errno) << "\n";
+            close(serverSocket);
+            return 1;
+        }
+
+        char buffer[1024] = {0};
+        int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+        if (bytesRead > 0) {
+            string response = processCommand(string(buffer, bytesRead), blockchainState, blockchain);
+            send(clientSocket, response.c_str(), response.size(), 0);
+        }
+
+        close(clientSocket);
+    }
+
+    close(serverSocket);
+    return 0;
+}
+#endif
 
 
 
