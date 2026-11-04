@@ -57,25 +57,31 @@ function createSignature(transaction) { // clientside call
  * @returns {boolean} - Returns true if the signature is valid, false otherwise.
  */
 function verifySignature(transaction) {
-    const sender = transaction.sender || transaction.senderPublicKey;
-    const sign = transaction.sign || transaction.signatureHex;
-    const { recipient, amt, data, nonce } = transaction;
-    const dataToVerify = JSON.stringify({
-        sender: sender,
-        recipient: recipient,
-        amt: amt,
-        data: data || null,
-        nonce: nonce,
-        // timestamp: timestamp
-    });
+    try {
+        const sender = transaction.sender || transaction.senderPublicKey;
+        const sign = transaction.sign || transaction.signatureHex;
+        if (!sender || !sign) return false;
 
-    const hash = crypto.createHash('sha256').update(dataToVerify).digest('hex');
+        const { recipient, amt, data, nonce } = transaction;
+        const dataToVerify = JSON.stringify({
+            sender: sender,
+            recipient: recipient,
+            amt: amt,
+            data: data || null,
+            nonce: nonce,
+            // timestamp: timestamp
+        });
 
-    // Directly use the compressed public key in keyFromPublic
-    const key = ec.keyFromPublic(sender, 'hex');
+        const hash = crypto.createHash('sha256').update(dataToVerify).digest('hex');
 
-    // Verify signature directly without using signatureFromDER
-    return key.verify(hash, Buffer.from(sign, 'hex'));
+        // Directly use the compressed public key in keyFromPublic
+        const key = ec.keyFromPublic(sender, 'hex');
+
+        // Verify signature directly without using signatureFromDER
+        return key.verify(hash, Buffer.from(sign, 'hex'));
+    } catch (error) {
+        return false;
+    }
 }
 
 // Export the functions for use in other modules

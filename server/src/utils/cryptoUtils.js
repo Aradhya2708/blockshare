@@ -93,7 +93,7 @@ export function verifyBlock(block) {
     const data = `${prevBlockHash}${JSON.stringify(transactions)}${blockNumber}${nonce}`
     const calcHash = crypto.createHash('sha256').update(data).digest('hex');
 
-    return calcHash === blockHash;
+    return calcHash.startsWith("0") && calcHash === blockHash;
 }
 
 export const mineBlock = async () => {
