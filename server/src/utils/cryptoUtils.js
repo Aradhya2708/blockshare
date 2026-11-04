@@ -91,9 +91,9 @@ export function verifyBlock(block) {
     console.log(block);
     const { prevBlockHash, transactions, blockNumber, nonce, blockHash } = block;
     const data = `${prevBlockHash}${JSON.stringify(transactions)}${blockNumber}${nonce}`
-    const calcHash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
+    const calcHash = crypto.createHash('sha256').update(data).digest('hex');
 
-    return calcHash === blockHash;
+    return calcHash.startsWith("0") && calcHash === blockHash;
 }
 
 export const mineBlock = async () => {
@@ -105,7 +105,7 @@ export const mineBlock = async () => {
     // console.log(blockNumber)
     const data = `${prevBlockHash}${JSON.stringify(transactions)}${blockNumber}`
     // console.log(JSON.stringify(transactions));
-    const { nonce, blockHash } = await getNonceAndHash((data));
+    const { nonce, hash: blockHash } = await getNonceAndHash(data, 1);
     console.log("mined!");
     const newBlock = { prevBlockHash, transactions, blockNumber, nonce, blockHash };
     return newBlock;
@@ -150,8 +150,8 @@ export const mineBlock = async () => {
 //     }
 // }
 
-async function getNonceAndHash(message, k) {
-    const targetPrefix = "0".repeat(k); // The required prefix of zeros
+async function getNonceAndHash(message, k = 1) {
+    const targetPrefix = "0".repeat(k || 1); // The required prefix of zeros
     let nonce = 0;
     let hash;
 

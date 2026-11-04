@@ -57,23 +57,32 @@ function createSignature(transaction) { // clientside call
  * @returns {boolean} - Returns true if the signature is valid, false otherwise.
  */
 function verifySignature(transaction) {
-    const {senderPublicKey, recipient, amt, data, nonce, timestamp, signatureHex} = transaction;
-    const dataToVerify = JSON.stringify({
-        sender: senderPublicKey,
-        recipient: recipient,
-        amt: amt,
-        data: data || null,
-        nonce: nonce,
-        // timestamp: timestamp
-    });
+    try {
+        const sender = transaction.sender || transaction.senderPublicKey;
+        const sign = transaction.sign || transaction.signatureHex;
+        if (!sender || !sign) return false;
 
-    const hash = crypto.createHash('sha256').update(dataToVerify).digest('hex');
+        const { recipient, amt, data, nonce } = transaction;
+        const key = ec.keyFromPublic(sender, 'hex');
+        const sigBuffer = Buffer.from(sign, 'hex');
 
-    // Directly use the compressed public key in keyFromPublic
-    const key = ec.keyFromPublic(senderPublicKey, 'hex');
+        // Canonical payload (matches client/utils/ellipticUtils.cjs)
+        const payload = { sender, recipient, amt, nonce };
+        if (data !== undefined && data !== null) {
+            payload.data = data;
+        }
+        const hash = crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex');
+        if (key.verify(hash, sigBuffer)) {
+            return true;
+        }
 
-    // Verify signature directly without using signatureFromDER
-    return key.verify(hash, Buffer.from(signatureHex, 'hex'));
+        // Fallback for legacy payload with { data: data || null, nonce }
+        const legacyPayload = { sender, recipient, amt, data: data || null, nonce };
+        const legacyHash = crypto.createHash('sha256').update(JSON.stringify(legacyPayload)).digest('hex');
+        return key.verify(legacyHash, sigBuffer);
+    } catch (error) {
+        return false;
+    }
 }
 
 // Export the functions for use in other modules
