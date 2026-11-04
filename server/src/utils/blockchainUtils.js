@@ -46,18 +46,18 @@ function messageParser(message) {
                 return {
                     sender: parts[0],
                     recipient: parts[1],
-                    nonce: parts[2],
                     amt: parseInt(parts[3]),
                     data: parts[4],
-                    timestamp: parts[5],
+                    nonce: parseInt(parts[2]),
+                    timestamp: parseInt(parts[5]),
                     sign: parts[6]
                 };
             } else if (parts.length === 5) {
                 return {
                     sender: parts[0],
                     recipient: parts[1],
-                    nonce: parts[2],
                     amt: parseInt(parts[3]),
+                    nonce: parseInt(parts[2]),
                     sign: parts[4]
                 };
             } else {
