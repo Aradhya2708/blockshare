@@ -150,19 +150,17 @@ export const syncBlockchain = async (req, res) => {
             return res.status(400).json({ error: `Block not verified` });
         }
         console.log("Block verified successfully");
-        addBlockToBlockchain(blocks[i]);
-
 
         try {
             await addBlockToBlockchain(blocks[i]);
             console.log("Block added to local blockchain successfully");
-
-            res.status(200).json({ message: 'Block received and added successfully' });
         } catch (error) {
             console.error("Error adding block to blockchain:", error);
-            res.status(500).json({ error: "Error adding block to blockchain" });
+            return res.status(500).json({ error: "Error adding block to blockchain" });
         }
     }
+
+    return res.status(200).json({ message: 'Block received and added successfully' });
 
     // 1. get blocks[] from blockchain
 
