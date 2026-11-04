@@ -63,22 +63,23 @@ function verifySignature(transaction) {
         if (!sender || !sign) return false;
 
         const { recipient, amt, data, nonce } = transaction;
-        const dataToVerify = JSON.stringify({
-            sender: sender,
-            recipient: recipient,
-            amt: amt,
-            data: data || null,
-            nonce: nonce,
-            // timestamp: timestamp
-        });
-
-        const hash = crypto.createHash('sha256').update(dataToVerify).digest('hex');
-
-        // Directly use the compressed public key in keyFromPublic
         const key = ec.keyFromPublic(sender, 'hex');
+        const sigBuffer = Buffer.from(sign, 'hex');
 
-        // Verify signature directly without using signatureFromDER
-        return key.verify(hash, Buffer.from(sign, 'hex'));
+        // Canonical payload (matches client/utils/ellipticUtils.cjs)
+        const payload = { sender, recipient, amt, nonce };
+        if (data !== undefined && data !== null) {
+            payload.data = data;
+        }
+        const hash = crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex');
+        if (key.verify(hash, sigBuffer)) {
+            return true;
+        }
+
+        // Fallback for legacy payload with { data: data || null, nonce }
+        const legacyPayload = { sender, recipient, amt, data: data || null, nonce };
+        const legacyHash = crypto.createHash('sha256').update(JSON.stringify(legacyPayload)).digest('hex');
+        return key.verify(legacyHash, sigBuffer);
     } catch (error) {
         return false;
     }
