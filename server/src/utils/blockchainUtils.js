@@ -43,11 +43,12 @@ function messageParser(message) {
         let result = entries.map(entry => {
             let parts = entry.split(':');
             if (parts.length === 7) {
+                const rawData = parts[4] ? decodeURIComponent(parts[4]) : null;
                 return {
                     sender: parts[0],
                     recipient: parts[1],
                     amt: parseInt(parts[3]),
-                    data: parts[4],
+                    data: rawData,
                     nonce: parseInt(parts[2]),
                     timestamp: parseInt(parts[5]),
                     sign: parts[6]
@@ -157,6 +158,7 @@ export const addBlockToBlockchain = async (newBlock) => {
     message += ",[";
     for (let i = 0; i < transactions.length; i++) {
         console.log("txn == ", transactions[i]);
+        const dataStr = encodeURIComponent(transactions[i].data || '');
         message += transactions[i].sender;
         message += ":";
         message += transactions[i].recipient;
@@ -165,7 +167,7 @@ export const addBlockToBlockchain = async (newBlock) => {
         message += ":";
         message += transactions[i].amt;
         message += ":";
-        message += transactions[i].data;
+        message += dataStr;
         message += ":";
         message += transactions[i].timestamp;
         message += ":";
