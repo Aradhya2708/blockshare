@@ -43,7 +43,7 @@ function messageParser(message) {
         let result = entries.map(entry => {
             let parts = entry.split(':');
             if (parts.length === 7) {
-                const rawData = parts[4] ? decodeURIComponent(parts[4]) : null;
+                const rawData = parts[4] ? decodeURIComponent(parts[4]) : undefined;
                 return {
                     sender: parts[0],
                     recipient: parts[1],
