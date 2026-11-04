@@ -42,17 +42,28 @@ function messageParser(message) {
         // Process each entry
         let result = entries.map(entry => {
             let parts = entry.split(':');
-            if (parts.length !== 5) {
+            if (parts.length === 7) {
+                const rawData = parts[4] ? decodeURIComponent(parts[4]) : undefined;
+                return {
+                    sender: parts[0],
+                    recipient: parts[1],
+                    amt: parseInt(parts[3]),
+                    data: rawData,
+                    nonce: parseInt(parts[2]),
+                    timestamp: parseInt(parts[5]),
+                    sign: parts[6]
+                };
+            } else if (parts.length === 5) {
+                return {
+                    sender: parts[0],
+                    recipient: parts[1],
+                    amt: parseInt(parts[3]),
+                    nonce: parseInt(parts[2]),
+                    sign: parts[4]
+                };
+            } else {
                 throw new Error(`Invalid entry format: ${entry}`);
             }
-
-            return {
-                sender: parts[0],
-                recipient: parts[1],
-                nonce: parts[2],
-                amt: parseInt(parts[3]),
-                sign: parts[4]
-            };
         });
 
         return { nonce, result };
@@ -147,6 +158,7 @@ export const addBlockToBlockchain = async (newBlock) => {
     message += ",[";
     for (let i = 0; i < transactions.length; i++) {
         console.log("txn == ", transactions[i]);
+        const dataStr = encodeURIComponent(transactions[i].data || '');
         message += transactions[i].sender;
         message += ":";
         message += transactions[i].recipient;
@@ -155,7 +167,7 @@ export const addBlockToBlockchain = async (newBlock) => {
         message += ":";
         message += transactions[i].amt;
         message += ":";
-        message += transactions[i].data;
+        message += dataStr;
         message += ":";
         message += transactions[i].timestamp;
         message += ":";

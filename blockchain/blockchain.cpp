@@ -942,7 +942,7 @@ void executeWholeBlockTransactions(string input) {
     string data = input.substr(nonceEnd + 1, input.size() - nonceEnd - 2); // Remove trailing ']'
 
     // Regular expression pattern to match the required components
-    regex pattern("([a-zA-Z0-9]+):([a-zA-Z0-9]+):(\\d+):(\\d+):([a-zA-Z0-9]+)");
+    regex pattern("([a-zA-Z0-9]+):([a-zA-Z0-9]+):(\\d+):(\\d+):([^:]*):(\\d+):([a-zA-Z0-9]+)");
 
     // Use regular expression to find matches in the data part
     auto words_begin = sregex_iterator(data.begin(), data.end(), pattern);
