@@ -396,7 +396,6 @@ private:
                     extNode->value = nullptr;
                     int newIndex = hexToIndex(remainingNew[0]);
                     branch->children[newIndex] = new LeafNode(remainingNew.substr(1), value);
-                    branch->children[16] = extNode->next;
                 } else if (remainingNew.empty()) {
                     newExtNode->value = new Value(value);
                     int oldIndex = hexToIndex(remainingOld[0]);

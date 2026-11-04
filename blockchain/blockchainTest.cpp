@@ -118,7 +118,7 @@ public:
             return false;  // Block cannot be confirmed if the parent is not confirmed
         }
 
-        if( block->parent->children.size() > 1){
+        if(block->parent != nullptr && block->parent->children.size() > 1){
             return false;
         }
 
@@ -141,12 +141,12 @@ public:
     }
 
     void resolveFork(shared_ptr<Block> block) {
+        if (!block) return;
         if (block->children.size() <= 1) {
             cout << "No fork detected. Block " << block->hash << " has " << block->children.size() << " children.\n";
-            if(block->parent != nullptr)
-                // if(isConfirmed(block->parent))
-                //      return; // found confirmed blockchain
+            if (block->parent != nullptr) {
                 resolveFork(block->parent);
+            }
             return;  // No fork, nothing to resolve
         }
 
@@ -185,7 +185,9 @@ public:
         // if(isConfirmed(block->parent))
         //     return; // found confirmed blockchain
 
-        resolveFork(block->parent);
+        if (block->parent != nullptr) {
+            resolveFork(block->parent);
+        }
     }
 
 
