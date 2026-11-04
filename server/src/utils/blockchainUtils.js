@@ -42,17 +42,27 @@ function messageParser(message) {
         // Process each entry
         let result = entries.map(entry => {
             let parts = entry.split(':');
-            if (parts.length !== 5) {
+            if (parts.length === 7) {
+                return {
+                    sender: parts[0],
+                    recipient: parts[1],
+                    nonce: parts[2],
+                    amt: parseInt(parts[3]),
+                    data: parts[4],
+                    timestamp: parts[5],
+                    sign: parts[6]
+                };
+            } else if (parts.length === 5) {
+                return {
+                    sender: parts[0],
+                    recipient: parts[1],
+                    nonce: parts[2],
+                    amt: parseInt(parts[3]),
+                    sign: parts[4]
+                };
+            } else {
                 throw new Error(`Invalid entry format: ${entry}`);
             }
-
-            return {
-                sender: parts[0],
-                recipient: parts[1],
-                nonce: parts[2],
-                amt: parseInt(parts[3]),
-                sign: parts[4]
-            };
         });
 
         return { nonce, result };
