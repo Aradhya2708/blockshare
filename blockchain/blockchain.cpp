@@ -212,12 +212,12 @@ public:
 
 
     void resolveFork(shared_ptr<Block> block) {
+        if (!block) return;
         if (block->children.size() <= 1) {
             cout << "No fork detected. Block " << block->hash << " has " << block->children.size() << " children.\n";
-            if(block->parent != nullptr)
-                // if(isConfirmed(block->parent))
-                //      return; // found confirmed blockchain
+            if (block->parent != nullptr) {
                 resolveFork(block->parent);
+            }
             return;  // No fork, nothing to resolve
         }
 
@@ -256,7 +256,9 @@ public:
         // if(isConfirmed(block->parent))
         //     return; // found confirmed blockchain
 
-        resolveFork(block->parent);
+        if (block->parent != nullptr) {
+            resolveFork(block->parent);
+        }
     }
 
 
@@ -461,6 +463,7 @@ private:
     int hexToIndex(char c) {
         if (c >= '0' && c <= '9') return c - '0';
         else if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        else if (c >= 'A' && c <= 'F') return c - 'A' + 10;
         return -1;
     }
 
@@ -719,8 +722,9 @@ private:
                     newExtNode->value = extNode->value;
                     extNode->value = nullptr;
                     int newIndex = hexToIndex(remainingNew[0]);
-                    branch->children[newIndex] = new LeafNode(remainingNew.substr(1), value);
-                    branch->children[16] = extNode->next;
+                    if (newIndex >= 0 && newIndex < 16) {
+                        branch->children[newIndex] = new LeafNode(remainingNew.substr(1), value);
+                    }
                 } else if (remainingNew.empty()) {
                     newExtNode->value = new Value(value);
                     int oldIndex = hexToIndex(remainingOld[0]);
