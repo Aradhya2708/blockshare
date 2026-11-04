@@ -81,7 +81,7 @@ export const submitTxn = async (req, res) => {
     console.debug("sign verified")
 
     // 2. Verify the nonce (to prevent replay attacks) 
-    const isNonceValid = verifyNonce(sender, nonce);
+    const isNonceValid = await verifyNonce(sender, nonce);
     if (!isNonceValid) {
         return res.status(400).json({ error: 'Invalid nonce' });
     }

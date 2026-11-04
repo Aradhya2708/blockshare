@@ -57,9 +57,11 @@ function createSignature(transaction) { // clientside call
  * @returns {boolean} - Returns true if the signature is valid, false otherwise.
  */
 function verifySignature(transaction) {
-    const {senderPublicKey, recipient, amt, data, nonce, timestamp, signatureHex} = transaction;
+    const sender = transaction.sender || transaction.senderPublicKey;
+    const sign = transaction.sign || transaction.signatureHex;
+    const { recipient, amt, data, nonce } = transaction;
     const dataToVerify = JSON.stringify({
-        sender: senderPublicKey,
+        sender: sender,
         recipient: recipient,
         amt: amt,
         data: data || null,
@@ -70,10 +72,10 @@ function verifySignature(transaction) {
     const hash = crypto.createHash('sha256').update(dataToVerify).digest('hex');
 
     // Directly use the compressed public key in keyFromPublic
-    const key = ec.keyFromPublic(senderPublicKey, 'hex');
+    const key = ec.keyFromPublic(sender, 'hex');
 
     // Verify signature directly without using signatureFromDER
-    return key.verify(hash, Buffer.from(signatureHex, 'hex'));
+    return key.verify(hash, Buffer.from(sign, 'hex'));
 }
 
 // Export the functions for use in other modules
